@@ -1,0 +1,50 @@
+{
+  "docx_exists": true,
+  "docx_size_bytes": 839515,
+  "required_labels_present": {
+    "1. Problem statement/description": true,
+    "2. Exploratory data analysis": true,
+    "a. Multivariate analysis": true,
+    "b. Random forest analysis": true,
+    "c. Relationship to analysis from Week 1-7": true,
+    "3. Data conclusions": true,
+    "4. Proposal": true,
+    "5. Teamwork": true,
+    "6. Citations/bibliography": true,
+    "7. AI Appendix": true,
+    "8. Weekly graphs and homework assignments": true
+  },
+  "one_inch_margins": true,
+  "normal_style": {
+    "font": "Times New Roman",
+    "size_pt": 12.0,
+    "double_spacing": true
+  },
+  "embedded_images": 6,
+  "numbered_figure_captions": {
+    "Figure 1.": true,
+    "Figure 2.": true,
+    "Figure 3.": true,
+    "Figure 4.": true,
+    "Figure 5.": true,
+    "Figure 6.": true
+  },
+  "body_table_caption_present": true,
+  "pdf_pages_total": 15,
+  "body_pages_before_appendix": 10,
+  "appendix_starts_on_page": 11,
+  "placeholder_tokens_found": false,
+  "week12": {
+    "cells": 11,
+    "executed_final_cell": true,
+    "final_cell_outputs": 1,
+    "errors": []
+  },
+  "validated_auc": {
+    "mortgage": 0.723,
+    "lending_club": 0.698
+  },
+  "all_required_labels_present": true,
+  "all_figure_captions_present": true,
+  "overall_pass": true
+}

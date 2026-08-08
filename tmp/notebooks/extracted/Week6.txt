@@ -1,0 +1,1626 @@
+# Week6.ipynb
+Cells: 36
+
+
+## CELL 1 MARKDOWN
+# Week 6 - Bivariate Analysis, part 2
+
+## CELL 2 MARKDOWN
+# 1. Lesson: no lesson this week
+
+## CELL 3 MARKDOWN
+# 2. Weekly graph question
+
+## CELL 4 MARKDOWN
+Suppose you wanted to show the nitrate and phosphate level in a water sample.  What are the advantages and disadvantages of showing this as an area plot, as opposed to two separate line graphs?  How would you adjust the graphs shown to improve the presentation?
+
+## CELL 5 MARKDOWN
+### Weekly Graph Question Answer
+
+An area plot can be useful if the goal is to show the combined nitrate and phosphate level over time, because the filled areas make the total amount visually obvious. The disadvantage is that it can hide the individual values, especially when one series is stacked on top of the other. For two water-quality measurements, separate line graphs or a single two-line graph are usually clearer because the reader can compare the direction, timing, and size of each change directly.
+
+To improve the presentation, I would use clear labels, a shared date axis, readable colors, and a legend that names nitrate and phosphate directly. If an area plot is used, I would avoid stacking unless the combined total is the main message. I would also add an informative title and keep the y-axis label tied to the measurement unit.
+
+## CELL 6 CODE execution_count=173
+import numpy as np
+import seaborn as sns
+import pandas as pd
+import matplotlib.pyplot as plt
+from pathlib import Path
+
+sns.set_theme(style="whitegrid", context="notebook")
+plt.rcParams["figure.dpi"] = 120
+pd.set_option("display.max_columns", 80)
+
+## CELL 7 CODE execution_count=174
+numdates = 12
+np.random.seed(0)
+time_series = 100 * (np.random.normal(size = numdates) / 5 + np.arange(numdates) / 16)
+datearray = pd.date_range(start='2023/01/01', end='2024/01/01', freq='ME')
+ax = sns.lineplot(x = datearray, y = time_series)
+ax.set_xlabel("Year and month")
+ax.set_ylabel("Nitrate level (% of eutrophic value)")
+
+### OUTPUT
+[text/plain]
+Text(0, 0.5, 'Nitrate level (% of eutrophic value)')
+[text/plain]
+<Figure size 768x576 with 1 Axes>
+[image/png] tmp/notebooks/extracted/Week6/figure-001.png
+
+## CELL 8 CODE execution_count=175
+np.random.seed(1)
+time_series_2 =  100 * (1 - (np.random.normal(size = numdates) / 8 + np.arange(numdates) / 16))
+datearray = pd.date_range(start='2023/01/01', end='2024/01/01', freq='ME')
+ax = sns.lineplot(x = datearray, y = time_series_2)
+ax.set_xlabel("Year and month")
+ax.set_ylabel("Phosphate level (% of eutrophic value)")
+
+### OUTPUT
+[text/plain]
+Text(0, 0.5, 'Phosphate level (% of eutrophic value)')
+[text/plain]
+<Figure size 768x576 with 1 Axes>
+[image/png] tmp/notebooks/extracted/Week6/figure-002.png
+
+## CELL 9 CODE execution_count=176
+df = pd.DataFrame({'ser1': time_series, 'ser2': time_series_2}, index = datearray)
+df.plot.area()
+
+### OUTPUT
+[text/plain]
+<Axes: >
+[text/plain]
+<Figure size 768x576 with 1 Axes>
+[image/png] tmp/notebooks/extracted/Week6/figure-003.png
+
+## CELL 10 MARKDOWN
+# 3. Working on your datasets
+
+This week, you will do the same types of exercises as last week, but you should use your chosen datasets that someone in your class found last semester. (They likely will not be the particular datasets that you found yourself.)
+
+### Here are some types of analysis you can do:
+
+- Find correlations between pairs of variables.
+
+- Draw scatterplots, especially when the correlation is large.
+
+- Draw pairplots.
+
+- Draw line graphs and/or area graphs when there is date or time data together with numerical data.
+
+### Conclusions:
+
+- Explain what conclusions you would draw from this analysis: are the data what you expect?  Are the data likely to be usable?  If the data are not useable, find some new data!
+
+- Do you see any outliers?  (Data points that are far from the rest of the data).
+
+- Are any data items highly correlated with each other, suggesting that they are redundant?
+
+- For the line plots, do you see a trend or pattern over time?  Does this suggest that the data are changing over time (drifting) in such a way as to invalidate comparisons?
+
+- Can you think of any confounding variables?  (Third variables that could explain any correlations between other variables.  These third variables may or may not be reported in the dataset.)
+
+## CELL 11 MARKDOWN
+## Problem 3: Bivariate Analysis on My Datasets
+
+For this section, I analyzed all three imported datasets available in the project: `Loan_Default.csv`, the Home Credit default risk training data, and the accepted Lending Club loan data. I focused on plots that answer a real question for each dataset instead of plotting relationships that are only mathematically obvious. Each dataset section includes relationship plots, outlier or data-quality checks, and a conclusion tied back to the rubric.
+
+## CELL 12 MARKDOWN
+## Dataset 1: Loan Default Data
+
+Business question: which applicant or loan characteristics are most related to whether a borrower defaulted? In this file, `Status = 1` means the borrower defaulted and `Status = 0` means the borrower did not default.
+
+## CELL 13 CODE execution_count=177
+loan_default = pd.read_csv("Loan_Default.csv")
+
+print(f"Loan default dataset shape: {loan_default.shape[0]:,} rows and {loan_default.shape[1]:,} columns")
+print(f"Default rate: {loan_default['Status'].mean():.1%}")
+display(loan_default.head())
+display(loan_default.isna().sum().sort_values(ascending=False).head(10).to_frame("missing_values"))
+
+### OUTPUT
+Loan default dataset shape: 148,670 rows and 34 columns
+Default rate: 24.6%
+[text/plain]
+      ID  year loan_limit             Gender approv_in_adv loan_type  \
+0  24890  2019         cf  Sex Not Available         nopre     type1   
+1  24891  2019         cf               Male         nopre     type2   
+2  24892  2019         cf               Male           pre     type1   
+3  24893  2019         cf               Male         nopre     type1   
+4  24894  2019         cf              Joint           pre     type1   
+
+  loan_purpose Credit_Worthiness open_credit business_or_commercial  \
+0           p1                l1        nopc                  nob/c   
+1           p1                l1        nopc                    b/c   
+2           p1                l1        nopc                  nob/c   
+3           p4                l1        nopc                  nob/c   
+4           p1                l1        nopc                  nob/c   
+
+   loan_amount  rate_of_interest  Interest_rate_spread  Upfront_charges  \
+0       116500               NaN                   NaN              NaN   
+1       206500               NaN                   NaN              NaN   
+2       406500              4.56                0.2000            595.0   
+3       456500              4.25                0.6810              NaN   
+4       696500              4.00                0.3042              0.0   
+
+    term Neg_ammortization interest_only lump_sum_payment  property_value  \
+0  360.0           not_neg       not_int         not_lpsm        118000.0   
+1  360.0           not_neg       not_int             lpsm             NaN   
+2  360.0           neg_amm       not_int         not_lpsm        508000.0   
+3  360.0           not_neg       not_int         not_lpsm        658000.0   
+4  360.0           not_neg       not_int         not_lpsm        758000.0   
+
+  construction_type occupancy_type Secured_by total_units   income  \
+0                sb             pr       home          1U   1740.0   
+1                sb             pr       home          1U   4980.0   
+2                sb             pr       home          1U   9480.0   
+3                sb             pr       home          1U  11880.0   
+4                sb             pr       home          1U  10440.0   
+
+  credit_type  Credit_Score co-applicant_credit_type    age  \
+0         EXP           758                      CIB  25-34   
+1        EQUI           552                      EXP  55-64   
+2         EXP           834                      CIB  35-44   
+3         EXP           587                      CIB  45-54   
+4        CRIF           602                      EXP  25-34   
+
+  submission_of_application        LTV Region Security_Type  Status  dtir1  
+0                   to_inst  98.728814  south        direct       1   45.0  
+1                   to_inst        NaN  North        direct       1    NaN  
+2                   to_inst  80.019685  south        direct       0   46.0  
+3                  not_inst  69.376900  North        direct       0   42.0  
+4                  not_inst  91.886544  North        direct       0   39.0
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } ID year loan_limit Gender approv_in_adv loan_type loan_purpose Credit_Worthiness open_credit business_or_commercial loan_amount rate_of_interest Interest_rate_spread Upfront_charges term Neg_ammortization interest_only lump_sum_payment property_value construction_type occupancy_type Secured_by total_units income credit_type Credit_Score co-applicant_credit_type age submission_of_application LTV Region Security_Type Status dtir1 0 24890 2019 cf Sex Not Available nopre type1 p1 l1 nopc nob/c 116500 NaN NaN NaN 360.0 not_neg not_int not_lpsm 118000.0 sb pr home 1U 1740.0 EXP 758 CIB 25-34 to_inst 98.728814 south direct 1 45.0 1 24891 2019 cf Male nopre type2 p1 l1 nopc b/c 206500 NaN NaN NaN 360.0 not_neg not_int lpsm NaN sb pr home 1U 4980.0 EQUI 552 EXP 55-64 to_inst NaN North direct 1 NaN 2 24892 2019 cf Male pre type1 p1 l1 nopc nob/c 406500 4.56 0.2000 595.0 360.0 neg_amm not_int not_lpsm 508000.0 sb pr home 1U 9480.0 EXP 834 CIB 35-44 to_inst 80.019685 south direct 0 46.0 3 24893 2019 cf Male nopre type1 p4 l1 nopc nob/c 456500 4.25 0.6810 NaN 360.0 not_neg not_int not_lpsm 658000.0 sb pr home 1U 11880.0 EXP 587 CIB 45-54 not_inst 69.376900 North direct 0 42.0 4 24894 2019 cf Joint pre type1 p1 l1 nopc nob/c 696500 4.00 0.3042 0.0 360.0 not_neg not_int not_lpsm 758000.0 sb pr home 1U 10440.0 CRIF 602 EXP 25-34 not_inst 91.886544 North direct 0 39.0 
+[text/plain]
+                           missing_values
+Upfront_charges                     39642
+Interest_rate_spread                36639
+rate_of_interest                    36439
+dtir1                               24121
+LTV                                 15098
+property_value                      15098
+income                               9150
+loan_limit                           3344
+approv_in_adv                         908
+submission_of_application             200
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } missing_values Upfront_charges 39642 Interest_rate_spread 36639 rate_of_interest 36439 dtir1 24121 LTV 15098 property_value 15098 income 9150 loan_limit 3344 approv_in_adv 908 submission_of_application 200 
+
+## CELL 14 CODE execution_count=178
+loan_numeric = loan_default.select_dtypes(include=np.number).drop(columns=["ID", "year"], errors="ignore")
+loan_corr = loan_numeric.corr()
+
+status_corr_df = (
+    loan_corr["Status"]
+    .drop("Status")
+    .dropna()
+    .sort_values(key=lambda values: values.abs(), ascending=False)
+    .reset_index()
+)
+status_corr_df.columns = ["numeric_variable", "correlation_with_default"]
+display(status_corr_df)
+
+plt.figure(figsize=(9, 5))
+sns.barplot(
+    data=status_corr_df.head(8),
+    x="correlation_with_default",
+    y="numeric_variable",
+    color="steelblue"
+)
+plt.axvline(0, color="black", linewidth=1)
+plt.title("Loan Default: Numeric Variables Most Related to Default")
+plt.xlabel("Correlation with Status (1 = default)")
+plt.ylabel("Numeric Variable")
+plt.tight_layout()
+plt.show()
+
+### OUTPUT
+[text/plain]
+   numeric_variable  correlation_with_default
+0             dtir1                  0.078083
+1            income                 -0.065119
+2    property_value                 -0.048864
+3               LTV                  0.038895
+4       loan_amount                 -0.036825
+5  rate_of_interest                  0.022957
+6   Upfront_charges                 -0.019138
+7      Credit_Score                  0.004004
+8              term                 -0.000240
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } numeric_variable correlation_with_default 0 dtir1 0.078083 1 income -0.065119 2 property_value -0.048864 3 LTV 0.038895 4 loan_amount -0.036825 5 rate_of_interest 0.022957 6 Upfront_charges -0.019138 7 Credit_Score 0.004004 8 term -0.000240 
+[text/plain]
+<Figure size 1080x600 with 1 Axes>
+[image/png] tmp/notebooks/extracted/Week6/figure-004.png
+
+## CELL 15 CODE execution_count=179
+loan_risk = loan_default[["Status", "income", "dtir1", "LTV", "loan_amount"]].dropna().copy()
+quintile_labels = ["Q1 lowest", "Q2", "Q3", "Q4", "Q5 highest"]
+
+loan_risk["Income quintile"] = pd.qcut(loan_risk["income"], q=5, labels=quintile_labels, duplicates="drop")
+loan_risk["Debt-to-income quintile"] = pd.qcut(loan_risk["dtir1"], q=5, labels=quintile_labels, duplicates="drop")
+loan_risk["Loan-to-value quintile"] = pd.qcut(loan_risk["LTV"], q=5, labels=quintile_labels, duplicates="drop")
+
+range_tables = []
+for raw_column, quintile_column in [
+    ("income", "Income quintile"),
+    ("dtir1", "Debt-to-income quintile"),
+    ("LTV", "Loan-to-value quintile")
+]:
+    ranges = (
+        loan_risk
+        .groupby(quintile_column, observed=True)[raw_column]
+        .agg(min_value="min", max_value="max")
+        .reset_index()
+    )
+    ranges["variable"] = raw_column
+    range_tables.append(ranges)
+
+display(pd.concat(range_tables, ignore_index=True))
+
+risk_plots = []
+for column in ["Income quintile", "Debt-to-income quintile", "Loan-to-value quintile"]:
+    grouped = (
+        loan_risk
+        .groupby(column, observed=True)["Status"]
+        .agg(default_rate="mean", loan_count="size")
+        .reset_index()
+    )
+    risk_plots.append((column, grouped))
+
+fig, axes = plt.subplots(1, 3, figsize=(18, 5), sharey=True)
+for ax, (column, grouped) in zip(axes, risk_plots):
+    sns.lineplot(data=grouped, x=column, y="default_rate", marker="o", ax=ax, color="steelblue")
+    ax.set_title(f"Default Rate by {column}")
+    ax.set_xlabel(column)
+    ax.set_ylabel("Default Rate")
+    ax.tick_params(axis="x", rotation=20)
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:.0%}"))
+
+plt.tight_layout()
+plt.show()
+
+### OUTPUT
+[text/plain]
+   Income quintile    min_value      max_value variable  \
+0        Q1 lowest     0.000000    3420.000000   income   
+1               Q2  3480.000000    4980.000000   income   
+2               Q3  5040.000000    6720.000000   income   
+3               Q4  6780.000000    9420.000000   income   
+4       Q5 highest  9480.000000  578580.000000   income   
+5              NaN     5.000000      30.000000    dtir1   
+6              NaN    31.000000      37.000000    dtir1   
+7              NaN    38.000000      42.000000    dtir1   
+8              NaN    43.000000      46.000000    dtir1   
+9              NaN    47.000000      61.000000    dtir1   
+10             NaN     0.967478      56.782946      LTV   
+11             NaN    56.797082      69.572025      LTV   
+12             NaN    69.574176      78.621495      LTV   
+13             NaN    78.645833      87.967290      LTV   
+14             NaN    87.979351     263.541667      LTV   
+
+   Debt-to-income quintile Loan-to-value quintile  
+0                      NaN                    NaN  
+1                      NaN                    NaN  
+2                      NaN                    NaN  
+3                      NaN                    NaN  
+4                      NaN                    NaN  
+5                Q1 lowest                    NaN  
+6                       Q2                    NaN  
+7                       Q3                    NaN  
+8                       Q4                    NaN  
+9               Q5 highest                    NaN  
+10                     NaN              Q1 lowest  
+11                     NaN                     Q2  
+12                     NaN                     Q3  
+13                     NaN                     Q4  
+14                     NaN             Q5 highest
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } Income quintile min_value max_value variable Debt-to-income quintile Loan-to-value quintile 0 Q1 lowest 0.000000 3420.000000 income NaN NaN 1 Q2 3480.000000 4980.000000 income NaN NaN 2 Q3 5040.000000 6720.000000 income NaN NaN 3 Q4 6780.000000 9420.000000 income NaN NaN 4 Q5 highest 9480.000000 578580.000000 income NaN NaN 5 NaN 5.000000 30.000000 dtir1 Q1 lowest NaN 6 NaN 31.000000 37.000000 dtir1 Q2 NaN 7 NaN 38.000000 42.000000 dtir1 Q3 NaN 8 NaN 43.000000 46.000000 dtir1 Q4 NaN 9 NaN 47.000000 61.000000 dtir1 Q5 highest NaN 10 NaN 0.967478 56.782946 LTV NaN Q1 lowest 11 NaN 56.797082 69.572025 LTV NaN Q2 12 NaN 69.574176 78.621495 LTV NaN Q3 13 NaN 78.645833 87.967290 LTV NaN Q4 14 NaN 87.979351 263.541667 LTV NaN Q5 highest 
+[text/plain]
+<Figure size 2160x600 with 3 Axes>
+[image/png] tmp/notebooks/extracted/Week6/figure-005.png
+
+## CELL 16 CODE execution_count=180
+loan_category_rates = []
+for column in ["loan_type", "Credit_Worthiness", "credit_type", "age", "Region"]:
+    grouped = (
+        loan_default
+        .dropna(subset=[column, "Status"])
+        .groupby(column)["Status"]
+        .agg(default_rate="mean", loan_count="size")
+        .reset_index()
+        .rename(columns={column: "category"})
+    )
+    grouped["variable"] = column
+    loan_category_rates.append(grouped)
+
+loan_category_rates = pd.concat(loan_category_rates, ignore_index=True)
+display(loan_category_rates.sort_values("default_rate", ascending=False).head(15))
+
+fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+for ax, column in zip(axes, ["loan_type", "Credit_Worthiness", "age"]):
+    plot_data = loan_category_rates[loan_category_rates["variable"] == column].sort_values("default_rate", ascending=False)
+    sns.barplot(data=plot_data, x="category", y="default_rate", ax=ax, color="darkorange")
+    ax.set_title(f"Default Rate by {column}")
+    ax.set_xlabel(column)
+    ax.set_ylabel("Default Rate")
+    ax.tick_params(axis="x", rotation=35)
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:.0%}"))
+
+plt.tight_layout()
+plt.show()
+
+### OUTPUT
+[text/plain]
+      category  default_rate  loan_count           variable
+7         EQUI      0.999935       15298        credit_type
+1        type2      0.345439       20762          loan_type
+4           l2      0.317736        6326  Credit_Worthiness
+17  North-East      0.304453        1235             Region
+15         >74      0.300070        7175                age
+14         <25      0.289454        1337                age
+18     central      0.275382        8697             Region
+13       65-74      0.268560       20744                age
+19       south      0.266293       64016             Region
+12       55-64      0.258868       32534                age
+2        type3      0.250560       14735          loan_type
+3           l1      0.243277      142344  Credit_Worthiness
+11       45-54      0.240467       34720                age
+0        type1      0.227749      113173          loan_type
+16       North      0.225114       74722             Region
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } category default_rate loan_count variable 7 EQUI 0.999935 15298 credit_type 1 type2 0.345439 20762 loan_type 4 l2 0.317736 6326 Credit_Worthiness 17 North-East 0.304453 1235 Region 15 &gt;74 0.300070 7175 age 14 &lt;25 0.289454 1337 age 18 central 0.275382 8697 Region 13 65-74 0.268560 20744 age 19 south 0.266293 64016 Region 12 55-64 0.258868 32534 age 2 type3 0.250560 14735 loan_type 3 l1 0.243277 142344 Credit_Worthiness 11 45-54 0.240467 34720 age 0 type1 0.227749 113173 loan_type 16 North 0.225114 74722 Region 
+[text/plain]
+<Figure size 2160x600 with 3 Axes>
+[image/png] tmp/notebooks/extracted/Week6/figure-006.png
+
+## CELL 17 CODE execution_count=181
+loan_relationship_sample = loan_default.dropna(subset=["property_value", "loan_amount", "Status"]).sample(
+    n=min(2000, loan_default.dropna(subset=["property_value", "loan_amount", "Status"]).shape[0]),
+    random_state=0
+).copy()
+loan_relationship_sample["Status label"] = loan_relationship_sample["Status"].map({0: "Did not default", 1: "Defaulted"})
+
+plt.figure(figsize=(8, 6))
+sns.scatterplot(
+    data=loan_relationship_sample,
+    x="property_value",
+    y="loan_amount",
+    hue="Status label",
+    alpha=0.35,
+    s=20
+)
+plt.xlim(0, loan_relationship_sample["property_value"].quantile(0.99))
+plt.ylim(0, loan_relationship_sample["loan_amount"].quantile(0.99))
+plt.title("Loan Amount vs. Property Value by Default Status")
+plt.xlabel("Property Value")
+plt.ylabel("Loan Amount")
+plt.tight_layout()
+plt.show()
+
+### OUTPUT
+[text/plain]
+<Figure size 960x720 with 1 Axes>
+[image/png] tmp/notebooks/extracted/Week6/figure-007.png
+
+## CELL 18 CODE execution_count=182
+loan_outlier_columns = ["loan_amount", "property_value", "income", "LTV", "Upfront_charges", "dtir1"]
+loan_outlier_summary = []
+for column in loan_outlier_columns:
+    values = loan_default[column].dropna()
+    q1, q3 = values.quantile([0.25, 0.75])
+    iqr = q3 - q1
+    lower_bound = q1 - 1.5 * iqr
+    upper_bound = q3 + 1.5 * iqr
+    loan_outlier_summary.append({
+        "column": column,
+        "median": values.median(),
+        "min": values.min(),
+        "max": values.max(),
+        "iqr_outliers": ((values < lower_bound) | (values > upper_bound)).sum(),
+        "upper_outlier_cutoff": upper_bound
+    })
+
+display(pd.DataFrame(loan_outlier_summary))
+
+fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+for ax, column in zip(axes, ["income", "LTV", "loan_amount"]):
+    sns.boxplot(data=loan_default, x=column, ax=ax, color="lightsteelblue")
+    ax.set_title(f"Outliers in {column}")
+    ax.set_xlim(loan_default[column].quantile(0.01), loan_default[column].quantile(0.99))
+plt.tight_layout()
+plt.show()
+
+print("Unique values in year column:", loan_default["year"].dropna().unique())
+
+### OUTPUT
+[text/plain]
+            column        median           min          max  iqr_outliers  \
+0      loan_amount  296500.00000  16500.000000   3576500.00          1895   
+1   property_value  418000.00000   8000.000000  16508000.00          5266   
+2           income    5760.00000      0.000000    578580.00          6546   
+3              LTV      75.13587      0.967478      7831.25          1882   
+4  Upfront_charges    2596.45000      0.000000     60000.00          2880   
+5            dtir1      39.00000      5.000000        61.00          2013   
+
+   upper_outlier_cutoff  
+0          7.965000e+05  
+1          1.168000e+06  
+2          1.572000e+04  
+3          1.247482e+02  
+4          1.115901e+04  
+5          6.600000e+01
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } column median min max iqr_outliers upper_outlier_cutoff 0 loan_amount 296500.00000 16500.000000 3576500.00 1895 7.965000e+05 1 property_value 418000.00000 8000.000000 16508000.00 5266 1.168000e+06 2 income 5760.00000 0.000000 578580.00 6546 1.572000e+04 3 LTV 75.13587 0.967478 7831.25 1882 1.247482e+02 4 Upfront_charges 2596.45000 0.000000 60000.00 2880 1.115901e+04 5 dtir1 39.00000 5.000000 61.00 2013 6.600000e+01 
+[text/plain]
+<Figure size 1800x480 with 3 Axes>
+[image/png] tmp/notebooks/extracted/Week6/figure-008.png
+Unique values in year column: [2019]
+
+## CELL 19 MARKDOWN
+### Loan Default Dataset Conclusions
+
+The loan default data is usable for bivariate analysis because it contains many loan, borrower, and credit variables connected to the target `Status`. The most important finding is that no single numeric variable has a strong linear relationship with default. The strongest numeric relationships are `dtir1`, `income`, `property_value`, `LTV`, and `loan_amount`, but each correlation is weak on its own.
+
+The default-rate plots are more meaningful than a raw correlation table. Lower-income applicants and applicants in the highest debt-to-income and loan-to-value groups show higher default rates, which fits the business expectation that affordability matters. Categorical variables such as `loan_type`, `Credit_Worthiness`, and age group also show visible differences in default rates.
+
+The scatterplot of `loan_amount` and `property_value` is useful for checking redundancy and loan structure: larger properties usually have larger loans. This relationship is expected, so it is not enough by itself to explain default. The outlier table and boxplots show extreme values in `income`, `LTV`, `property_value`, and `loan_amount`; these should be reviewed before modeling. The `year` column only contains 2019, so this dataset does not support a meaningful time trend.
+
+## CELL 20 MARKDOWN
+## Dataset 2: Home Credit Default Risk Training Data
+
+Business question: which application variables are most related to `TARGET`, where `TARGET = 1` means the applicant had payment difficulty? This dataset supports direct default-risk analysis because it contains the actual target value, loan/application amounts, external risk scores, demographics, and applicant history variables.
+
+## CELL 21 CODE execution_count=183
+home_credit_path = Path("DATA/home-credit-default-risk/application_train.csv")
+home_credit = pd.read_csv(home_credit_path)
+
+print(f"Home Credit training dataset shape: {home_credit.shape[0]:,} rows and {home_credit.shape[1]:,} columns")
+print(f"Payment-difficulty rate: {home_credit['TARGET'].mean():.1%}")
+display(home_credit.head())
+display(home_credit.isna().sum().sort_values(ascending=False).head(12).to_frame("missing_values"))
+
+home_credit_analysis = home_credit.copy()
+home_credit_analysis["AGE_YEARS"] = -home_credit_analysis["DAYS_BIRTH"] / 365.25
+home_credit_analysis["YEARS_EMPLOYED"] = np.where(
+    home_credit_analysis["DAYS_EMPLOYED"] < 0,
+    -home_credit_analysis["DAYS_EMPLOYED"] / 365.25,
+    np.nan
+)
+home_credit_analysis["CREDIT_TO_INCOME"] = (
+    home_credit_analysis["AMT_CREDIT"] / home_credit_analysis["AMT_INCOME_TOTAL"]
+)
+home_credit_analysis["ANNUITY_TO_INCOME"] = (
+    home_credit_analysis["AMT_ANNUITY"] / home_credit_analysis["AMT_INCOME_TOTAL"]
+)
+home_credit_analysis["CREDIT_TO_GOODS_PRICE"] = (
+    home_credit_analysis["AMT_CREDIT"] / home_credit_analysis["AMT_GOODS_PRICE"]
+)
+
+numeric_columns = [
+    "TARGET", "EXT_SOURCE_1", "EXT_SOURCE_2", "EXT_SOURCE_3", "AGE_YEARS",
+    "YEARS_EMPLOYED", "AMT_INCOME_TOTAL", "AMT_CREDIT", "AMT_ANNUITY",
+    "AMT_GOODS_PRICE", "CREDIT_TO_INCOME", "ANNUITY_TO_INCOME",
+    "CREDIT_TO_GOODS_PRICE", "REGION_RATING_CLIENT_W_CITY",
+    "DEF_30_CNT_SOCIAL_CIRCLE", "OBS_30_CNT_SOCIAL_CIRCLE",
+    "AMT_REQ_CREDIT_BUREAU_YEAR"
+]
+
+home_numeric = home_credit_analysis[numeric_columns]
+home_corr = home_numeric.corr(numeric_only=True).abs()
+
+target_corr_df = (
+    home_corr["TARGET"]
+    .drop("TARGET")
+    .dropna()
+    .sort_values(key=lambda values: values.abs(), ascending=False)
+    .reset_index()
+)
+target_corr_df.columns = ["numeric_variable", "correlation_with_payment_difficulty"]
+display(target_corr_df)
+
+plt.figure(figsize=(9, 5))
+sns.barplot(
+    data=target_corr_df.head(10),
+    x="correlation_with_payment_difficulty",
+    y="numeric_variable",
+    color="steelblue"
+)
+plt.axvline(0, color="black", linewidth=1)
+plt.title("Home Credit: Numeric Variables Most Related to TARGET")
+plt.xlabel("Correlation with TARGET (1 = payment difficulty)")
+plt.ylabel("Numeric Variable")
+plt.tight_layout()
+plt.show()
+
+### OUTPUT
+Home Credit training dataset shape: 307,511 rows and 122 columns
+Payment-difficulty rate: 8.1%
+[text/plain]
+   SK_ID_CURR  TARGET NAME_CONTRACT_TYPE CODE_GENDER FLAG_OWN_CAR  \
+0      100002       1         Cash loans           M            N   
+1      100003       0         Cash loans           F            N   
+2      100004       0    Revolving loans           M            Y   
+3      100006       0         Cash loans           F            N   
+4      100007       0         Cash loans           M            N   
+
+  FLAG_OWN_REALTY  CNT_CHILDREN  AMT_INCOME_TOTAL  AMT_CREDIT  AMT_ANNUITY  \
+0               Y             0          202500.0    406597.5      24700.5   
+1               N             0          270000.0   1293502.5      35698.5   
+2               Y             0           67500.0    135000.0       6750.0   
+3               Y             0          135000.0    312682.5      29686.5   
+4               Y             0          121500.0    513000.0      21865.5   
+
+   AMT_GOODS_PRICE NAME_TYPE_SUITE NAME_INCOME_TYPE  \
+0         351000.0   Unaccompanied          Working   
+1        1129500.0          Family    State servant   
+2         135000.0   Unaccompanied          Working   
+3         297000.0   Unaccompanied          Working   
+4         513000.0   Unaccompanied          Working   
+
+             NAME_EDUCATION_TYPE    NAME_FAMILY_STATUS  NAME_HOUSING_TYPE  \
+0  Secondary / secondary special  Single / not married  House / apartment   
+1               Higher education               Married  House / apartment   
+2  Secondary / secondary special  Single / not married  House / apartment   
+3  Secondary / secondary special        Civil marriage  House / apartment   
+4  Secondary / secondary special  Single / not married  House / apartment   
+
+   REGION_POPULATION_RELATIVE  DAYS_BIRTH  DAYS_EMPLOYED  DAYS_REGISTRATION  \
+0                    0.018801       -9461           -637            -3648.0   
+1                    0.003541      -16765          -1188            -1186.0   
+2                    0.010032      -19046           -225            -4260.0   
+3                    0.008019      -19005          -3039            -9833.0   
+4                    0.028663      -19932          -3038            -4311.0   
+
+   DAYS_ID_PUBLISH  OWN_CAR_AGE  FLAG_MOBIL  FLAG_EMP_PHONE  FLAG_WORK_PHONE  \
+0            -2120          NaN           1               1                0   
+1             -291          NaN           1               1                0   
+2            -2531         26.0           1               1                1   
+3            -2437          NaN           1               1                0   
+4            -3458          NaN           1               1                0   
+
+   FLAG_CONT_MOBILE  FLAG_PHONE  FLAG_EMAIL OCCUPATION_TYPE  CNT_FAM_MEMBERS  \
+0                 1           1           0        Laborers              1.0   
+1                 1           1           0      Core staff              2.0   
+2                 1           1           0        Laborers              1.0   
+3                 1           0           0        Laborers              2.0   
+4                 1           0           0      Core staff              1.0   
+
+   REGION_RATING_CLIENT  REGION_RATING_CLIENT_W_CITY  \
+0                     2                            2   
+1                     1                            1   
+2                     2                            2   
+3                     2                            2   
+4                     2                            2   
+
+  WEEKDAY_APPR_PROCESS_START  HOUR_APPR_PROCESS_START  \
+0                  WEDNESDAY                       10   
+1                     MONDAY                       11   
+2                     MONDAY                        9   
+3                  WEDNESDAY                       17   
+4                   THURSDAY                       11   
+
+   REG_REGION_NOT_LIVE_REGION  REG_REGION_NOT_WORK_REGION  \
+0                           0                           0   
+1                           0                           0   
+2                           0                           0   
+3                           0                           0   
+4                           0                           0   
+
+   LIVE_REGION_NOT_WORK_REGION  REG_CITY_NOT_LIVE_CITY  \
+0                            0                       0   
+1                            0                       0   
+2                            0                       0   
+3                            0                       0   
+4                            0                       0   
+
+   REG_CITY_NOT_WORK_CITY  LIVE_CITY_NOT_WORK_CITY  ... LIVINGAPARTMENTS_MEDI  \
+0                       0                        0  ...                0.0205   
+1                       0                        0  ...                0.0787   
+2                       0                        0  ...                   NaN   
+3                       0                        0  ...                   NaN   
+4                       1                        1  ...                   NaN   
+
+   LIVINGAREA_MEDI  NONLIVINGAPARTMENTS_MEDI  NONLIVINGAREA_MEDI  \
+0           0.0193                    0.0000                0.00   
+1           0.0558                    0.0039                0.01   
+2              NaN                       NaN                 NaN   
+3              NaN                       NaN                 NaN   
+4              NaN                       NaN                 NaN   
+
+   FONDKAPREMONT_MODE  HOUSETYPE_MODE  TOTALAREA_MODE  WALLSMATERIAL_MODE  \
+0    reg oper account  block of flats          0.0149        Stone, brick   
+1    reg oper account  block of flats          0.0714               Block   
+2                 NaN             NaN             NaN                 NaN   
+3                 NaN             NaN             NaN                 NaN   
+4                 NaN             NaN             NaN                 NaN   
+
+   EMERGENCYSTATE_MODE  OBS_30_CNT_SOCIAL_CIRCLE  DEF_30_CNT_SOCIAL_CIRCLE  \
+0                   No                       2.0                       2.0   
+1                   No                       1.0                       0.0   
+2                  NaN                       0.0                       0.0   
+3                  NaN                       2.0                       0.0   
+4                  NaN                       0.0                       0.0   
+
+   OBS_60_CNT_SOCIAL_CIRCLE  DEF_60_CNT_SOCIAL_CIRCLE  DAYS_LAST_PHONE_CHANGE  \
+0                       2.0                       2.0                 -1134.0   
+1                       1.0                       0.0                  -828.0   
+2                       0.0                       0.0                  -815.0   
+3                       2.0                       0.0                  -617.0   
+4                       0.0                       0.0                 -1106.0   
+
+   FLAG_DOCUMENT_2  FLAG_DOCUMENT_3  FLAG_DOCUMENT_4  FLAG_DOCUMENT_5  \
+0                0                1                0                0   
+1                0                1                0                0   
+2                0                0                0                0   
+3                0                1                0                0   
+4                0                0                0                0   
+
+   FLAG_DOCUMENT_6  FLAG_DOCUMENT_7  FLAG_DOCUMENT_8  FLAG_DOCUMENT_9  \
+0                0                0                0                0   
+1                0                0                0                0   
+2                0                0                0                0   
+3                0                0                0                0   
+4                0                0                1                0   
+
+   FLAG_DOCUMENT_10  FLAG_DOCUMENT_11  FLAG_DOCUMENT_12  FLAG_DOCUMENT_13  \
+0                 0                 0                 0                 0   
+1                 0                 0                 0                 0   
+2                 0                 0                 0                 0   
+3                 0                 0                 0                 0   
+4                 0                 0                 0                 0   
+
+   FLAG_DOCUMENT_14  FLAG_DOCUMENT_15  FLAG_DOCUMENT_16  FLAG_DOCUMENT_17  \
+0                 0                 0                 0                 0   
+1                 0                 0                 0                 0   
+2                 0                 0                 0                 0   
+3                 0                 0                 0                 0   
+4                 0                 0                 0                 0   
+
+   FLAG_DOCUMENT_18  FLAG_DOCUMENT_19  FLAG_DOCUMENT_20  FLAG_DOCUMENT_21  \
+0                 0                 0                 0                 0   
+1                 0                 0                 0                 0   
+2                 0                 0                 0                 0   
+3                 0                 0                 0                 0   
+4                 0                 0                 0                 0   
+
+   AMT_REQ_CREDIT_BUREAU_HOUR  AMT_REQ_CREDIT_BUREAU_DAY  \
+0                         0.0                        0.0   
+1                         0.0                        0.0   
+2                         0.0                        0.0   
+3                         NaN                        NaN   
+4                         0.0                        0.0   
+
+   AMT_REQ_CREDIT_BUREAU_WEEK  AMT_REQ_CREDIT_BUREAU_MON  \
+0                         0.0                        0.0   
+1                         0.0                        0.0   
+2                         0.0                        0.0   
+3                         NaN                        NaN   
+4                         0.0                        0.0   
+
+   AMT_REQ_CREDIT_BUREAU_QRT  AMT_REQ_CREDIT_BUREAU_YEAR  
+0                        0.0                         1.0  
+1                        0.0                         0.0  
+2                        0.0                         0.0  
+3                        NaN                         NaN  
+4                        0.0                         0.0  
+
+[5 rows x 122 columns]
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } SK_ID_CURR TARGET NAME_CONTRACT_TYPE CODE_GENDER FLAG_OWN_CAR FLAG_OWN_REALTY CNT_CHILDREN AMT_INCOME_TOTAL AMT_CREDIT AMT_ANNUITY AMT_GOODS_PRICE NAME_TYPE_SUITE NAME_INCOME_TYPE NAME_EDUCATION_TYPE NAME_FAMILY_STATUS NAME_HOUSING_TYPE REGION_POPULATION_RELATIVE DAYS_BIRTH DAYS_EMPLOYED DAYS_REGISTRATION DAYS_ID_PUBLISH OWN_CAR_AGE FLAG_MOBIL FLAG_EMP_PHONE FLAG_WORK_PHONE FLAG_CONT_MOBILE FLAG_PHONE FLAG_EMAIL OCCUPATION_TYPE CNT_FAM_MEMBERS REGION_RATING_CLIENT REGION_RATING_CLIENT_W_CITY WEEKDAY_APPR_PROCESS_START HOUR_APPR_PROCESS_START REG_REGION_NOT_LIVE_REGION REG_REGION_NOT_WORK_REGION LIVE_REGION_NOT_WORK_REGION REG_CITY_NOT_LIVE_CITY REG_CITY_NOT_WORK_CITY LIVE_CITY_NOT_WORK_CITY ... LIVINGAPARTMENTS_MEDI LIVINGAREA_MEDI NONLIVINGAPARTMENTS_MEDI NONLIVINGAREA_MEDI FONDKAPREMONT_MODE HOUSETYPE_MODE TOTALAREA_MODE WALLSMATERIAL_MODE EMERGENCYSTATE_MODE OBS_30_CNT_SOCIAL_CIRCLE DEF_30_CNT_SOCIAL_CIRCLE OBS_60_CNT_SOCIAL_CIRCLE DEF_60_CNT_SOCIAL_CIRCLE DAYS_LAST_PHONE_CHANGE FLAG_DOCUMENT_2 FLAG_DOCUMENT_3 FLAG_DOCUMENT_4 FLAG_DOCUMENT_5 FLAG_DOCUMENT_6 FLAG_DOCUMENT_7 FLAG_DOCUMENT_8 FLAG_DOCUMENT_9 FLAG_DOCUMENT_10 FLAG_DOCUMENT_11 FLAG_DOCUMENT_12 FLAG_DOCUMENT_13 FLAG_DOCUMENT_14 FLAG_DOCUMENT_15 FLAG_DOCUMENT_16 FLAG_DOCUMENT_17 FLAG_DOCUMENT_18 FLAG_DOCUMENT_19 FLAG_DOCUMENT_20 FLAG_DOCUMENT_21 AMT_REQ_CREDIT_BUREAU_HOUR AMT_REQ_CREDIT_BUREAU_DAY AMT_REQ_CREDIT_BUREAU_WEEK AMT_REQ_CREDIT_BUREAU_MON AMT_REQ_CREDIT_BUREAU_QRT AMT_REQ_CREDIT_BUREAU_YEAR 0 100002 1 Cash loans M N Y 0 202500.0 406597.5 24700.5 351000.0 Unaccompanied Working Secondary / secondary special Single / not married House / apartment 0.018801 -9461 -637 -3648.0 -2120 NaN 1 1 0 1 1 0 Laborers 1.0 2 2 WEDNESDAY 10 0 0 0 0 0 0 ... 0.0205 0.0193 0.0000 0.00 reg oper account block of flats 0.0149 Stone, brick No 2.0 2.0 2.0 2.0 -1134.0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.0 0.0 0.0 0.0 0.0 1.0 1 100003 0 Cash loans F N N 0 270000.0 1293502.5 35698.5 1129500.0 Family State servant Higher education Married House / apartment 0.003541 -16765 -1188 -1186.0 -291 NaN 1 1 0 1 1 0 Core staff 2.0 1 1 MONDAY 11 0 0 0 0 0 0 ... 0.0787 0.0558 0.0039 0.01 reg oper account block of flats 0.0714 Block No 1.0 0.0 1.0 0.0 -828.0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.0 0.0 0.0 0.0 0.0 0.0 2 100004 0 Revolving loans M Y Y 0 67500.0 135000.0 6750.0 135000.0 Unaccompanied Working Secondary / secondary special Single / not married House / apartment 0.010032 -19046 -225 -4260.0 -2531 26.0 1 1 1 1 1 0 Laborers 1.0 2 2 MONDAY 9 0 0 0 0 0 0 ... NaN NaN NaN NaN NaN NaN NaN NaN NaN 0.0 0.0 0.0 0.0 -815.0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.0 0.0 0.0 0.0 0.0 0.0 3 100006 0 Cash loans F N Y 0 135000.0 312682.5 29686.5 297000.0 Unaccompanied Working Secondary / secondary special Civil marriage House / apartment 0.008019 -19005 -3039 -9833.0 -2437 NaN 1 1 0 1 0 0 Laborers 2.0 2 2 WEDNESDAY 17 0 0 0 0 0 0 ... NaN NaN NaN NaN NaN NaN NaN NaN NaN 2.0 0.0 2.0 0.0 -617.0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 NaN NaN NaN NaN NaN NaN 4 100007 0 Cash loans M N Y 0 121500.0 513000.0 21865.5 513000.0 Unaccompanied Working Secondary / secondary special Single / not married House / apartment 0.028663 -19932 -3038 -4311.0 -3458 NaN 1 1 0 1 0 0 Core staff 1.0 2 2 THURSDAY 11 0 0 0 0 1 1 ... NaN NaN NaN NaN NaN NaN NaN NaN NaN 0.0 0.0 0.0 0.0 -1106.0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0.0 0.0 0.0 0.0 0.0 0.0 5 rows × 122 columns 
+[text/plain]
+                          missing_values
+COMMONAREA_MEDI                   214865
+COMMONAREA_AVG                    214865
+COMMONAREA_MODE                   214865
+NONLIVINGAPARTMENTS_MODE          213514
+NONLIVINGAPARTMENTS_AVG           213514
+NONLIVINGAPARTMENTS_MEDI          213514
+FONDKAPREMONT_MODE                210295
+LIVINGAPARTMENTS_MODE             210199
+LIVINGAPARTMENTS_AVG              210199
+LIVINGAPARTMENTS_MEDI             210199
+FLOORSMIN_AVG                     208642
+FLOORSMIN_MODE                    208642
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } missing_values COMMONAREA_MEDI 214865 COMMONAREA_AVG 214865 COMMONAREA_MODE 214865 NONLIVINGAPARTMENTS_MODE 213514 NONLIVINGAPARTMENTS_AVG 213514 NONLIVINGAPARTMENTS_MEDI 213514 FONDKAPREMONT_MODE 210295 LIVINGAPARTMENTS_MODE 210199 LIVINGAPARTMENTS_AVG 210199 LIVINGAPARTMENTS_MEDI 210199 FLOORSMIN_AVG 208642 FLOORSMIN_MODE 208642 
+[text/plain]
+               numeric_variable  correlation_with_payment_difficulty
+0                  EXT_SOURCE_3                             0.178919
+1                  EXT_SOURCE_2                             0.160472
+2                  EXT_SOURCE_1                             0.155317
+3                     AGE_YEARS                             0.078239
+4                YEARS_EMPLOYED                             0.074948
+5         CREDIT_TO_GOODS_PRICE                             0.069427
+6   REGION_RATING_CLIENT_W_CITY                             0.060893
+7               AMT_GOODS_PRICE                             0.039645
+8      DEF_30_CNT_SOCIAL_CIRCLE                             0.032248
+9                    AMT_CREDIT                             0.030369
+10   AMT_REQ_CREDIT_BUREAU_YEAR                             0.019930
+11            ANNUITY_TO_INCOME                             0.014265
+12                  AMT_ANNUITY                             0.012817
+13     OBS_30_CNT_SOCIAL_CIRCLE                             0.009131
+14             CREDIT_TO_INCOME                             0.007727
+15             AMT_INCOME_TOTAL                             0.003982
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } numeric_variable correlation_with_payment_difficulty 0 EXT_SOURCE_3 0.178919 1 EXT_SOURCE_2 0.160472 2 EXT_SOURCE_1 0.155317 3 AGE_YEARS 0.078239 4 YEARS_EMPLOYED 0.074948 5 CREDIT_TO_GOODS_PRICE 0.069427 6 REGION_RATING_CLIENT_W_CITY 0.060893 7 AMT_GOODS_PRICE 0.039645 8 DEF_30_CNT_SOCIAL_CIRCLE 0.032248 9 AMT_CREDIT 0.030369 10 AMT_REQ_CREDIT_BUREAU_YEAR 0.019930 11 ANNUITY_TO_INCOME 0.014265 12 AMT_ANNUITY 0.012817 13 OBS_30_CNT_SOCIAL_CIRCLE 0.009131 14 CREDIT_TO_INCOME 0.007727 15 AMT_INCOME_TOTAL 0.003982 
+[text/plain]
+<Figure size 1080x600 with 1 Axes>
+[image/png] tmp/notebooks/extracted/Week6/figure-009.png
+
+## CELL 22 CODE execution_count=184
+home_risk = home_credit_analysis[[
+    "TARGET", "EXT_SOURCE_1", "EXT_SOURCE_2", "EXT_SOURCE_3",
+    "AGE_YEARS", "YEARS_EMPLOYED", "CREDIT_TO_INCOME", "ANNUITY_TO_INCOME"
+]].copy()
+
+quintile_labels = ["Q1 lowest", "Q2", "Q3", "Q4", "Q5 highest"]
+quintile_features = {
+    "EXT_SOURCE_3": "External score 3",
+    "EXT_SOURCE_2": "External score 2",
+    "EXT_SOURCE_1": "External score 1",
+    "AGE_YEARS": "Applicant age",
+    "YEARS_EMPLOYED": "Years employed",
+    "CREDIT_TO_INCOME": "Credit-to-income ratio"
+}
+
+home_quintile_rates = []
+for raw_column, label in quintile_features.items():
+    plot_frame = home_risk[[raw_column, "TARGET"]].dropna().copy()
+    plot_frame["quintile"] = pd.qcut(
+        plot_frame[raw_column],
+        q=5,
+        labels=quintile_labels,
+        duplicates="drop"
+    )
+    grouped = (
+        plot_frame
+        .groupby("quintile", observed=True)["TARGET"]
+        .agg(payment_difficulty_rate="mean", applicant_count="size")
+        .reset_index()
+    )
+    grouped["feature"] = label
+    home_quintile_rates.append(grouped)
+
+home_quintile_rates = pd.concat(home_quintile_rates, ignore_index=True)
+display(home_quintile_rates)
+
+plt.figure(figsize=(12, 6))
+sns.lineplot(
+    data=home_quintile_rates,
+    x="quintile",
+    y="payment_difficulty_rate",
+    hue="feature",
+    marker="o"
+)
+plt.axhline(home_credit_analysis["TARGET"].mean(), color="gray", linestyle="--", linewidth=1)
+plt.title("Home Credit: Payment-Difficulty Rate by Predictor Quintile")
+plt.xlabel("Value Quintile Within Each Variable")
+plt.ylabel("Payment-Difficulty Rate")
+plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:.0%}"))
+plt.legend(title="Predictor", bbox_to_anchor=(1.02, 1), loc="upper left")
+plt.tight_layout()
+plt.show()
+
+score_sample = home_credit_analysis.dropna(subset=["EXT_SOURCE_2", "EXT_SOURCE_3", "TARGET"]).sample(
+    n=min(5000, home_credit_analysis.dropna(subset=["EXT_SOURCE_2", "EXT_SOURCE_3", "TARGET"]).shape[0]),
+    random_state=0
+).copy()
+score_sample["TARGET label"] = score_sample["TARGET"].map({0: "No payment difficulty", 1: "Payment difficulty"})
+
+plt.figure(figsize=(8, 6))
+sns.scatterplot(
+    data=score_sample,
+    x="EXT_SOURCE_2",
+    y="EXT_SOURCE_3",
+    hue="TARGET label",
+    alpha=0.45,
+    s=18
+)
+plt.title("External Scores 2 and 3 by TARGET Status")
+plt.xlabel("EXT_SOURCE_2")
+plt.ylabel("EXT_SOURCE_3")
+plt.tight_layout()
+plt.show()
+
+### OUTPUT
+[text/plain]
+      quintile  payment_difficulty_rate  applicant_count  \
+0    Q1 lowest                 0.163758            49445   
+1           Q2                 0.087505            49746   
+2           Q3                 0.057505            49578   
+3           Q4                 0.044795            49470   
+4   Q5 highest                 0.033763            48307   
+5    Q1 lowest                 0.152140            61371   
+6           Q2                 0.091607            61371   
+7           Q3                 0.070392            61371   
+8           Q4                 0.053652            61377   
+9   Q5 highest                 0.035870            61361   
+10   Q1 lowest                 0.145786            26827   
+11          Q2                 0.087378            26826   
+12          Q3                 0.063593            26827   
+13          Q4                 0.047603            26826   
+14  Q5 highest                 0.030417            26827   
+15   Q1 lowest                 0.112824            61512   
+16          Q2                 0.093295            61504   
+17          Q3                 0.078493            61509   
+18          Q4                 0.067392            61491   
+19  Q5 highest                 0.051630            61495   
+20   Q1 lowest                 0.112416            50509   
+21          Q2                 0.106687            50409   
+22          Q3                 0.090891            50390   
+23          Q4                 0.071086            50418   
+24  Q5 highest                 0.051856            50409   
+25   Q1 lowest                 0.073352            61539   
+26          Q2                 0.085672            61502   
+27          Q3                 0.089253            61466   
+28          Q4                 0.082839            61505   
+29  Q5 highest                 0.072538            61499   
+
+                   feature  
+0         External score 3  
+1         External score 3  
+2         External score 3  
+3         External score 3  
+4         External score 3  
+5         External score 2  
+6         External score 2  
+7         External score 2  
+8         External score 2  
+9         External score 2  
+10        External score 1  
+11        External score 1  
+12        External score 1  
+13        External score 1  
+14        External score 1  
+15           Applicant age  
+16           Applicant age  
+17           Applicant age  
+18           Applicant age  
+19           Applicant age  
+20          Years employed  
+21          Years employed  
+22          Years employed  
+23          Years employed  
+24          Years employed  
+25  Credit-to-income ratio  
+26  Credit-to-income ratio  
+27  Credit-to-income ratio  
+28  Credit-to-income ratio  
+29  Credit-to-income ratio
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } quintile payment_difficulty_rate applicant_count feature 0 Q1 lowest 0.163758 49445 External score 3 1 Q2 0.087505 49746 External score 3 2 Q3 0.057505 49578 External score 3 3 Q4 0.044795 49470 External score 3 4 Q5 highest 0.033763 48307 External score 3 5 Q1 lowest 0.152140 61371 External score 2 6 Q2 0.091607 61371 External score 2 7 Q3 0.070392 61371 External score 2 8 Q4 0.053652 61377 External score 2 9 Q5 highest 0.035870 61361 External score 2 10 Q1 lowest 0.145786 26827 External score 1 11 Q2 0.087378 26826 External score 1 12 Q3 0.063593 26827 External score 1 13 Q4 0.047603 26826 External score 1 14 Q5 highest 0.030417 26827 External score 1 15 Q1 lowest 0.112824 61512 Applicant age 16 Q2 0.093295 61504 Applicant age 17 Q3 0.078493 61509 Applicant age 18 Q4 0.067392 61491 Applicant age 19 Q5 highest 0.051630 61495 Applicant age 20 Q1 lowest 0.112416 50509 Years employed 21 Q2 0.106687 50409 Years employed 22 Q3 0.090891 50390 Years employed 23 Q4 0.071086 50418 Years employed 24 Q5 highest 0.051856 50409 Years employed 25 Q1 lowest 0.073352 61539 Credit-to-income ratio 26 Q2 0.085672 61502 Credit-to-income ratio 27 Q3 0.089253 61466 Credit-to-income ratio 28 Q4 0.082839 61505 Credit-to-income ratio 29 Q5 highest 0.072538 61499 Credit-to-income ratio 
+[text/plain]
+<Figure size 1440x720 with 1 Axes>
+[image/png] tmp/notebooks/extracted/Week6/figure-010.png
+[text/plain]
+<Figure size 960x720 with 1 Axes>
+[image/png] tmp/notebooks/extracted/Week6/figure-011.png
+
+## CELL 23 CODE execution_count=185
+home_category_rates = []
+for column in ["CODE_GENDER", "NAME_EDUCATION_TYPE", "NAME_INCOME_TYPE", "NAME_CONTRACT_TYPE", "REGION_RATING_CLIENT_W_CITY"]:
+    grouped = (
+        home_credit_analysis
+        .dropna(subset=[column, "TARGET"])
+        .groupby(column)["TARGET"]
+        .agg(payment_difficulty_rate="mean", applicant_count="size")
+        .reset_index()
+        .rename(columns={column: "category"})
+    )
+    grouped["variable"] = column
+    home_category_rates.append(grouped)
+
+home_category_rates = pd.concat(home_category_rates, ignore_index=True)
+display(home_category_rates.sort_values("payment_difficulty_rate", ascending=False).head(20))
+
+fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+for ax, column in zip(axes, ["NAME_EDUCATION_TYPE", "NAME_INCOME_TYPE", "REGION_RATING_CLIENT_W_CITY"]):
+    plot_data = home_category_rates[home_category_rates["variable"] == column].copy()
+    if column == "NAME_INCOME_TYPE":
+        plot_data = plot_data[plot_data["applicant_count"] >= 100].copy()
+    plot_data = plot_data.sort_values("payment_difficulty_rate", ascending=False)
+    sns.barplot(data=plot_data, x="category", y="payment_difficulty_rate", ax=ax, color="darkorange")
+    ax.set_title(f"TARGET Rate by {column}")
+    ax.set_xlabel(column)
+    ax.set_ylabel("Payment-Difficulty Rate")
+    ax.tick_params(axis="x", rotation=35)
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:.0%}"))
+
+plt.tight_layout()
+plt.show()
+
+home_outlier_columns = [
+    "AMT_INCOME_TOTAL", "AMT_CREDIT", "AMT_ANNUITY", "AMT_GOODS_PRICE",
+    "CREDIT_TO_INCOME", "ANNUITY_TO_INCOME", "AGE_YEARS", "YEARS_EMPLOYED"
+]
+home_outlier_summary = []
+for column in home_outlier_columns:
+    values = home_credit_analysis[column].replace([np.inf, -np.inf], np.nan).dropna()
+    q1, q3 = values.quantile([0.25, 0.75])
+    iqr = q3 - q1
+    lower_bound = q1 - 1.5 * iqr
+    upper_bound = q3 + 1.5 * iqr
+    home_outlier_summary.append({
+        "column": column,
+        "median": values.median(),
+        "min": values.min(),
+        "max": values.max(),
+        "iqr_outliers": ((values < lower_bound) | (values > upper_bound)).sum(),
+        "upper_outlier_cutoff": upper_bound
+    })
+
+display(pd.DataFrame(home_outlier_summary))
+
+redundancy_checks = home_corr.loc[
+    ["AMT_CREDIT", "AMT_GOODS_PRICE", "REGION_RATING_CLIENT_W_CITY", "OBS_30_CNT_SOCIAL_CIRCLE"],
+    ["AMT_CREDIT", "AMT_GOODS_PRICE", "REGION_RATING_CLIENT_W_CITY", "OBS_30_CNT_SOCIAL_CIRCLE", "DEF_30_CNT_SOCIAL_CIRCLE"]
+]
+display(redundancy_checks)
+
+fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+for ax, column in zip(axes, ["AMT_INCOME_TOTAL", "AMT_CREDIT", "CREDIT_TO_INCOME"]):
+    sns.boxplot(data=home_credit_analysis, x=column, ax=ax, color="lightsteelblue")
+    ax.set_title(f"Outliers in {column}")
+    ax.set_xlim(
+        home_credit_analysis[column].replace([np.inf, -np.inf], np.nan).quantile(0.01),
+        home_credit_analysis[column].replace([np.inf, -np.inf], np.nan).quantile(0.99)
+    )
+
+plt.tight_layout()
+plt.show()
+
+### OUTPUT
+[text/plain]
+                         category  payment_difficulty_rate  applicant_count  \
+10                Maternity leave                 0.400000                5   
+14                     Unemployed                 0.363636               22   
+20                              3                 0.114022            43860   
+6                 Lower secondary                 0.109277             3816   
+1                               M                 0.101419           105059   
+15                        Working                 0.095885           158774   
+7   Secondary / secondary special                 0.089399           218391   
+5               Incomplete higher                 0.084850            10277   
+16                     Cash loans                 0.083459           278232   
+19                              2                 0.079178           229484   
+9            Commercial associate                 0.074843            71617   
+0                               F                 0.069993           202448   
+12                  State servant                 0.057550            21703   
+17                Revolving loans                 0.054783            29279   
+11                      Pensioner                 0.053864            55362   
+4                Higher education                 0.053551            74863   
+18                              1                 0.048409            34167   
+3                 Academic degree                 0.018293              164   
+13                        Student                 0.000000               18   
+2                             XNA                 0.000000                4   
+
+                       variable  
+10             NAME_INCOME_TYPE  
+14             NAME_INCOME_TYPE  
+20  REGION_RATING_CLIENT_W_CITY  
+6           NAME_EDUCATION_TYPE  
+1                   CODE_GENDER  
+15             NAME_INCOME_TYPE  
+7           NAME_EDUCATION_TYPE  
+5           NAME_EDUCATION_TYPE  
+16           NAME_CONTRACT_TYPE  
+19  REGION_RATING_CLIENT_W_CITY  
+9              NAME_INCOME_TYPE  
+0                   CODE_GENDER  
+12             NAME_INCOME_TYPE  
+17           NAME_CONTRACT_TYPE  
+11             NAME_INCOME_TYPE  
+4           NAME_EDUCATION_TYPE  
+18  REGION_RATING_CLIENT_W_CITY  
+3           NAME_EDUCATION_TYPE  
+13             NAME_INCOME_TYPE  
+2                   CODE_GENDER
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } category payment_difficulty_rate applicant_count variable 10 Maternity leave 0.400000 5 NAME_INCOME_TYPE 14 Unemployed 0.363636 22 NAME_INCOME_TYPE 20 3 0.114022 43860 REGION_RATING_CLIENT_W_CITY 6 Lower secondary 0.109277 3816 NAME_EDUCATION_TYPE 1 M 0.101419 105059 CODE_GENDER 15 Working 0.095885 158774 NAME_INCOME_TYPE 7 Secondary / secondary special 0.089399 218391 NAME_EDUCATION_TYPE 5 Incomplete higher 0.084850 10277 NAME_EDUCATION_TYPE 16 Cash loans 0.083459 278232 NAME_CONTRACT_TYPE 19 2 0.079178 229484 REGION_RATING_CLIENT_W_CITY 9 Commercial associate 0.074843 71617 NAME_INCOME_TYPE 0 F 0.069993 202448 CODE_GENDER 12 State servant 0.057550 21703 NAME_INCOME_TYPE 17 Revolving loans 0.054783 29279 NAME_CONTRACT_TYPE 11 Pensioner 0.053864 55362 NAME_INCOME_TYPE 4 Higher education 0.053551 74863 NAME_EDUCATION_TYPE 18 1 0.048409 34167 REGION_RATING_CLIENT_W_CITY 3 Academic degree 0.018293 164 NAME_EDUCATION_TYPE 13 Student 0.000000 18 NAME_INCOME_TYPE 2 XNA 0.000000 4 CODE_GENDER 
+[text/plain]
+<Figure size 2160x600 with 3 Axes>
+[image/png] tmp/notebooks/extracted/Week6/figure-012.png
+[text/plain]
+              column         median           min           max  iqr_outliers  \
+0   AMT_INCOME_TOTAL  147150.000000  25650.000000  1.170000e+08         14035   
+1         AMT_CREDIT  513531.000000  45000.000000  4.050000e+06          6562   
+2        AMT_ANNUITY   24903.000000   1615.500000  2.580255e+05          7504   
+3    AMT_GOODS_PRICE  450000.000000  40500.000000  4.050000e+06         14728   
+4   CREDIT_TO_INCOME       3.265067      0.004808  8.473684e+01         11510   
+5  ANNUITY_TO_INCOME       0.162833      0.000224  1.875965e+00          7878   
+6          AGE_YEARS      43.121150     20.503765  6.907324e+01             0   
+7     YEARS_EMPLOYED       4.511978      0.002738  4.904038e+01         15149   
+
+   upper_outlier_cutoff  
+0          3.375000e+05  
+1          1.616625e+06  
+2          6.170400e+04  
+3          1.341000e+06  
+4          9.871700e+00  
+5          4.004939e-01  
+6          8.373854e+01  
+7          1.858179e+01
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } column median min max iqr_outliers upper_outlier_cutoff 0 AMT_INCOME_TOTAL 147150.000000 25650.000000 1.170000e+08 14035 3.375000e+05 1 AMT_CREDIT 513531.000000 45000.000000 4.050000e+06 6562 1.616625e+06 2 AMT_ANNUITY 24903.000000 1615.500000 2.580255e+05 7504 6.170400e+04 3 AMT_GOODS_PRICE 450000.000000 40500.000000 4.050000e+06 14728 1.341000e+06 4 CREDIT_TO_INCOME 3.265067 0.004808 8.473684e+01 11510 9.871700e+00 5 ANNUITY_TO_INCOME 0.162833 0.000224 1.875965e+00 7878 4.004939e-01 6 AGE_YEARS 43.121150 20.503765 6.907324e+01 0 8.373854e+01 7 YEARS_EMPLOYED 4.511978 0.002738 4.904038e+01 15149 1.858179e+01 
+[text/plain]
+                             AMT_CREDIT  AMT_GOODS_PRICE  \
+AMT_CREDIT                     1.000000         0.986968   
+AMT_GOODS_PRICE                0.986968         1.000000   
+REGION_RATING_CLIENT_W_CITY    0.110915         0.112208   
+OBS_30_CNT_SOCIAL_CIRCLE       0.000190         0.000328   
+
+                             REGION_RATING_CLIENT_W_CITY  \
+AMT_CREDIT                                      0.110915   
+AMT_GOODS_PRICE                                 0.112208   
+REGION_RATING_CLIENT_W_CITY                     1.000000   
+OBS_30_CNT_SOCIAL_CIRCLE                        0.030093   
+
+                             OBS_30_CNT_SOCIAL_CIRCLE  \
+AMT_CREDIT                                   0.000190   
+AMT_GOODS_PRICE                              0.000328   
+REGION_RATING_CLIENT_W_CITY                  0.030093   
+OBS_30_CNT_SOCIAL_CIRCLE                     1.000000   
+
+                             DEF_30_CNT_SOCIAL_CIRCLE  
+AMT_CREDIT                                   0.021229  
+AMT_GOODS_PRICE                              0.022244  
+REGION_RATING_CLIENT_W_CITY                  0.013935  
+OBS_30_CNT_SOCIAL_CIRCLE                     0.329338
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } AMT_CREDIT AMT_GOODS_PRICE REGION_RATING_CLIENT_W_CITY OBS_30_CNT_SOCIAL_CIRCLE DEF_30_CNT_SOCIAL_CIRCLE AMT_CREDIT 1.000000 0.986968 0.110915 0.000190 0.021229 AMT_GOODS_PRICE 0.986968 1.000000 0.112208 0.000328 0.022244 REGION_RATING_CLIENT_W_CITY 0.110915 0.112208 1.000000 0.030093 0.013935 OBS_30_CNT_SOCIAL_CIRCLE 0.000190 0.000328 0.030093 1.000000 0.329338 
+[text/plain]
+<Figure size 1800x480 with 3 Axes>
+[image/png] tmp/notebooks/extracted/Week6/figure-013.png
+
+## CELL 24 MARKDOWN
+### Home Credit Default Risk Dataset Conclusions
+
+The Home Credit training data is usable for bivariate default-risk analysis because it contains a clear binary target and many borrower, loan, external-score, and demographic variables. The most meaningful numeric relationships are the external source scores: `EXT_SOURCE_1`, `EXT_SOURCE_2`, and especially `EXT_SOURCE_3` have the strongest negative correlations with `TARGET`. That means lower external scores are associated with a higher probability of payment difficulty.
+
+The quintile plot is more interpretable than the raw correlation table. Applicants in the lowest external-score bands have much higher payment-difficulty rates than applicants in the highest score bands. Age and years employed also show a visible pattern: younger applicants and applicants with shorter employment histories tend to have higher default risk. Credit-to-income ratio is useful, but its relationship is weaker and less clean than the external scores.
+
+The scatterplot of `EXT_SOURCE_2` and `EXT_SOURCE_3` shows that the two external scores move together somewhat, but they are not identical. The categorical plots show that education level, income type, and regional rating also matter: lower education categories and worse region ratings generally have higher `TARGET` rates. Outlier checks show extreme income and loan amount values, so these should be capped, transformed, or reviewed before modeling. The redundancy check also shows that `AMT_CREDIT` and `AMT_GOODS_PRICE` are highly related, so a model may not need both in their raw form.
+
+## CELL 25 MARKDOWN
+## Dataset 3: Accepted Lending Club Loan Data
+
+Business question: which borrower and loan characteristics are associated with worse loan outcomes, and how do accepted loans change over time?
+
+## CELL 26 CODE execution_count=186
+accepted_path = Path("DATA/All Lending Club Loan Data/accepted_2007_to_2018q4.csv/accepted_2007_to_2018Q4.csv")
+accepted_columns = [
+    "loan_amnt", "funded_amnt", "int_rate", "installment", "annual_inc", "dti",
+    "fico_range_low", "fico_range_high", "open_acc", "revol_bal", "revol_util",
+    "total_acc", "loan_status", "grade", "purpose", "issue_d"
+]
+
+accepted_total_rows = sum(1 for _ in open(accepted_path, encoding="utf-8")) - 1
+accepted_sample_target = 50000
+accepted_sample_every = max(accepted_total_rows // accepted_sample_target, 1)
+
+accepted_loans = pd.read_csv(
+    accepted_path,
+    usecols=accepted_columns,
+    skiprows=lambda row_number: row_number > 0 and row_number % accepted_sample_every != 0,
+    low_memory=False
+)
+
+accepted_loans["issue_date"] = pd.to_datetime(accepted_loans["issue_d"], format="%b-%Y", errors="coerce")
+accepted_loans["issue_year"] = accepted_loans["issue_date"].dt.year
+accepted_loans["fico_average"] = (accepted_loans["fico_range_low"] + accepted_loans["fico_range_high"]) / 2
+accepted_loans["bad_loan"] = accepted_loans["loan_status"].isin([
+    "Charged Off", "Default", "Late (31-120 days)", "Late (16-30 days)",
+    "Does not meet the credit policy. Status:Charged Off"
+]).astype(int)
+
+print(f"Accepted Lending Club sample shape: {accepted_loans.shape[0]:,} rows and {accepted_loans.shape[1]:,} columns")
+print(f"Full accepted-loans file has approximately {accepted_total_rows:,} rows")
+print(f"Bad-loan rate in sample: {accepted_loans['bad_loan'].mean():.1%}")
+display(accepted_loans.head())
+display(accepted_loans["loan_status"].value_counts().head(10).to_frame("records"))
+display(accepted_loans.isna().sum().sort_values(ascending=False).head(10).to_frame("missing_values"))
+
+### OUTPUT
+Accepted Lending Club sample shape: 50,237 rows and 20 columns
+Full accepted-loans file has approximately 2,260,701 rows
+Bad-loan rate in sample: 13.0%
+[text/plain]
+   loan_amnt  funded_amnt  int_rate  installment grade  annual_inc   issue_d  \
+0     8650.0       8650.0      5.32       260.50     A   100000.00  Dec-2015   
+1     5000.0       5000.0      7.91       156.48     A    32000.00  Dec-2015   
+2     3200.0       3200.0      8.49       101.01     B    30407.00  Dec-2015   
+3    24000.0      24000.0     12.88       544.61     C    75181.21  Dec-2015   
+4    20000.0      20000.0      9.17       637.58     B   130000.00  Dec-2015   
+
+  loan_status             purpose    dti  fico_range_low  fico_range_high  \
+0  Fully Paid         credit_card   7.28           750.0            754.0   
+1  Fully Paid         credit_card  13.73           685.0            689.0   
+2  Fully Paid             medical  20.61           710.0            714.0   
+3     Current  debt_consolidation  31.57           720.0            724.0   
+4  Fully Paid  debt_consolidation  12.77           715.0            719.0   
+
+   open_acc  revol_bal  revol_util  total_acc issue_date  issue_year  \
+0      15.0     7158.0        26.7       24.0 2015-12-01        2015   
+1       7.0     5552.0        41.1       10.0 2015-12-01        2015   
+2       5.0     1061.0        30.3       13.0 2015-12-01        2015   
+3      13.0    17497.0        44.4       37.0 2015-12-01        2015   
+4       8.0    12187.0        36.5       13.0 2015-12-01        2015   
+
+   fico_average  bad_loan  
+0         752.0         0  
+1         687.0         0  
+2         712.0         0  
+3         722.0         0  
+4         717.0         0
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } loan_amnt funded_amnt int_rate installment grade annual_inc issue_d loan_status purpose dti fico_range_low fico_range_high open_acc revol_bal revol_util total_acc issue_date issue_year fico_average bad_loan 0 8650.0 8650.0 5.32 260.50 A 100000.00 Dec-2015 Fully Paid credit_card 7.28 750.0 754.0 15.0 7158.0 26.7 24.0 2015-12-01 2015 752.0 0 1 5000.0 5000.0 7.91 156.48 A 32000.00 Dec-2015 Fully Paid credit_card 13.73 685.0 689.0 7.0 5552.0 41.1 10.0 2015-12-01 2015 687.0 0 2 3200.0 3200.0 8.49 101.01 B 30407.00 Dec-2015 Fully Paid medical 20.61 710.0 714.0 5.0 1061.0 30.3 13.0 2015-12-01 2015 712.0 0 3 24000.0 24000.0 12.88 544.61 C 75181.21 Dec-2015 Current debt_consolidation 31.57 720.0 724.0 13.0 17497.0 44.4 37.0 2015-12-01 2015 722.0 0 4 20000.0 20000.0 9.17 637.58 B 130000.00 Dec-2015 Fully Paid debt_consolidation 12.77 715.0 719.0 8.0 12187.0 36.5 13.0 2015-12-01 2015 717.0 0 
+[text/plain]
+                                                    records
+loan_status                                                
+Fully Paid                                            23929
+Current                                               19538
+Charged Off                                            5937
+Late (31-120 days)                                      482
+In Grace Period                                         187
+Late (16-30 days)                                       102
+Does not meet the credit policy. Status:Fully Paid       41
+Does not meet the credit policy. Status:Charged...       20
+Default                                                   1
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } records loan_status Fully Paid 23929 Current 19538 Charged Off 5937 Late (31-120 days) 482 In Grace Period 187 Late (16-30 days) 102 Does not meet the credit policy. Status:Fully Paid 41 Does not meet the credit policy. Status:Charged Off 20 Default 1 
+[text/plain]
+                 missing_values
+revol_util                   44
+dti                          44
+loan_amnt                     0
+fico_range_high               0
+fico_average                  0
+issue_year                    0
+issue_date                    0
+total_acc                     0
+revol_bal                     0
+open_acc                      0
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } missing_values revol_util 44 dti 44 loan_amnt 0 fico_range_high 0 fico_average 0 issue_year 0 issue_date 0 total_acc 0 revol_bal 0 open_acc 0 
+
+## CELL 27 CODE execution_count=187
+accepted_numeric = accepted_loans.select_dtypes(include=np.number).drop(columns=["issue_year"], errors="ignore")
+accepted_corr = accepted_numeric.corr().abs()
+
+bad_loan_corr_df = (
+    accepted_corr["bad_loan"]
+    .drop("bad_loan")
+    .dropna()
+    .sort_values(key=lambda values: values.abs(), ascending=False)
+    .reset_index()
+)
+bad_loan_corr_df.columns = ["numeric_variable", "correlation_with_bad_loan"]
+display(bad_loan_corr_df)
+
+redundant_pairs = accepted_corr.where(np.triu(np.ones(accepted_corr.shape), k=1).astype(bool)).stack().reset_index()
+redundant_pairs.columns = ["variable_1", "variable_2", "correlation"]
+redundant_pairs["absolute_correlation"] = redundant_pairs["correlation"].abs()
+redundant_pairs = redundant_pairs.sort_values("absolute_correlation", ascending=False).head(8)
+display(redundant_pairs)
+
+accepted_loans["fico_band"] = pd.cut(
+    accepted_loans["fico_average"],
+    bins=[600, 660, 700, 740, 780, 850],
+    labels=["600-659", "660-699", "700-739", "740-779", "780+"]
+)
+fico_risk = (
+    accepted_loans
+    .dropna(subset=["fico_band", "bad_loan", "int_rate"])
+    .groupby("fico_band", observed=True)
+    .agg(
+        bad_loan_rate=("bad_loan", "mean"),
+        average_interest_rate=("int_rate", "mean"),
+        loan_count=("bad_loan", "size")
+    )
+    .reset_index()
+)
+display(fico_risk)
+
+fig, axes = plt.subplots(1, 2, figsize=(15, 5))
+sns.barplot(
+    data=bad_loan_corr_df.head(8),
+    x="correlation_with_bad_loan",
+    y="numeric_variable",
+    color="steelblue",
+    ax=axes[0]
+)
+axes[0].axvline(0, color="black", linewidth=1)
+axes[0].set_title("Accepted Loans: Numeric Variables Related to Bad Outcomes")
+axes[0].set_xlabel("Correlation with Bad-Loan Flag")
+axes[0].set_ylabel("Numeric Variable")
+
+sns.lineplot(data=fico_risk, x="fico_band", y="bad_loan_rate", marker="o", ax=axes[1], label="Bad-loan rate")
+axes[1].set_title("Bad-Loan Rate by FICO Band")
+axes[1].set_xlabel("FICO Band")
+axes[1].set_ylabel("Bad-Loan Rate")
+axes[1].yaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:.0%}"))
+axes[1].tick_params(axis="x", rotation=20)
+
+plt.tight_layout()
+plt.show()
+
+### OUTPUT
+[text/plain]
+   numeric_variable  correlation_with_bad_loan
+0          int_rate                   0.206374
+1    fico_range_low                   0.123949
+2      fico_average                   0.123948
+3   fico_range_high                   0.123948
+4        revol_util                   0.064993
+5               dti                   0.038327
+6        annual_inc                   0.037017
+7         revol_bal                   0.030172
+8       installment                   0.023661
+9         loan_amnt                   0.016829
+10      funded_amnt                   0.016755
+11         open_acc                   0.010394
+12        total_acc                   0.008554
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } numeric_variable correlation_with_bad_loan 0 int_rate 0.206374 1 fico_range_low 0.123949 2 fico_average 0.123948 3 fico_range_high 0.123948 4 revol_util 0.064993 5 dti 0.038327 6 annual_inc 0.037017 7 revol_bal 0.030172 8 installment 0.023661 9 loan_amnt 0.016829 10 funded_amnt 0.016755 11 open_acc 0.010394 12 total_acc 0.008554 
+[text/plain]
+          variable_1       variable_2  correlation  absolute_correlation
+110  fico_range_high     fico_average     1.000000              1.000000
+96    fico_range_low     fico_average     1.000000              1.000000
+91    fico_range_low  fico_range_high     1.000000              1.000000
+1          loan_amnt      funded_amnt     0.999777              0.999777
+17       funded_amnt      installment     0.945761              0.945761
+3          loan_amnt      installment     0.945427              0.945427
+123         open_acc        total_acc     0.714526              0.714526
+94    fico_range_low       revol_util     0.477811              0.477811
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } variable_1 variable_2 correlation absolute_correlation 110 fico_range_high fico_average 1.000000 1.000000 96 fico_range_low fico_average 1.000000 1.000000 91 fico_range_low fico_range_high 1.000000 1.000000 1 loan_amnt funded_amnt 0.999777 0.999777 17 funded_amnt installment 0.945761 0.945761 3 loan_amnt installment 0.945427 0.945427 123 open_acc total_acc 0.714526 0.714526 94 fico_range_low revol_util 0.477811 0.477811 
+[text/plain]
+  fico_band  bad_loan_rate  average_interest_rate  loan_count
+0   600-659       0.538462              14.910000          13
+1   660-699       0.161899              14.596143       28876
+2   700-739       0.100511              11.910249       15073
+3   740-779       0.063137               9.433708        4609
+4      780+       0.032413               8.130324        1666
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } fico_band bad_loan_rate average_interest_rate loan_count 0 600-659 0.538462 14.910000 13 1 660-699 0.161899 14.596143 28876 2 700-739 0.100511 11.910249 15073 3 740-779 0.063137 9.433708 4609 4 780+ 0.032413 8.130324 1666 
+[text/plain]
+<Figure size 1800x600 with 2 Axes>
+[image/png] tmp/notebooks/extracted/Week6/figure-014.png
+
+## CELL 28 CODE execution_count=188
+grade_bad_rate = (
+    accepted_loans
+    .dropna(subset=["grade", "bad_loan"])
+    .groupby("grade")
+    .agg(bad_loan_rate=("bad_loan", "mean"), loan_count=("bad_loan", "size"))
+    .reset_index()
+    .sort_values("grade")
+)
+
+purpose_bad_rate = (
+    accepted_loans
+    .dropna(subset=["purpose", "bad_loan"])
+    .groupby("purpose")
+    .agg(bad_loan_rate=("bad_loan", "mean"), loan_count=("bad_loan", "size"))
+    .query("loan_count >= 100")
+    .reset_index()
+    .sort_values("bad_loan_rate", ascending=False)
+)
+
+display(grade_bad_rate)
+display(purpose_bad_rate.head(10))
+
+fig, axes = plt.subplots(1, 2, figsize=(15, 5))
+sns.barplot(data=grade_bad_rate, x="grade", y="bad_loan_rate", color="steelblue", ax=axes[0])
+axes[0].set_title("Bad-Loan Rate by Credit Grade")
+axes[0].set_xlabel("Grade")
+axes[0].set_ylabel("Bad-Loan Rate")
+axes[0].yaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:.0%}"))
+for container in axes[0].containers:
+    axes[0].bar_label(
+        container,
+        labels=[f"{bar.get_height():.1%}" for bar in container],
+        padding=3
+    )
+
+sns.barplot(data=purpose_bad_rate.head(8), x="bad_loan_rate", y="purpose", color="darkorange", ax=axes[1])
+axes[1].set_title("Highest Bad-Loan Rates by Loan Purpose")
+axes[1].set_xlabel("Bad-Loan Rate")
+axes[1].set_ylabel("Loan Purpose")
+axes[1].xaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:.0%}"))
+
+for container in axes[1].containers:
+    axes[1].bar_label(
+        container,
+        labels=[f"{bar.get_width():.1%}" for bar in container],
+        padding=3
+    )
+
+plt.tight_layout()
+plt.show()
+
+### OUTPUT
+[text/plain]
+  grade  bad_loan_rate  loan_count
+0     A       0.037002        9648
+1     B       0.088881       14795
+2     C       0.146493       14301
+3     D       0.201279        7194
+4     E       0.283099        3059
+5     F       0.361083         997
+6     G       0.415638         243
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } grade bad_loan_rate loan_count 0 A 0.037002 9648 1 B 0.088881 14795 2 C 0.146493 14301 3 D 0.201279 7194 4 E 0.283099 3059 5 F 0.361083 997 6 G 0.415638 243 
+[text/plain]
+               purpose  bad_loan_rate  loan_count
+9       small_business       0.171540         513
+7               moving       0.155425         341
+2   debt_consolidation       0.140796       28353
+8                other       0.134900        3106
+6              medical       0.129534         579
+4                house       0.126154         325
+0                  car       0.120818         538
+10            vacation       0.116071         336
+3     home_improvement       0.111242        3407
+5       major_purchase       0.109790        1093
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } purpose bad_loan_rate loan_count 9 small_business 0.171540 513 7 moving 0.155425 341 2 debt_consolidation 0.140796 28353 8 other 0.134900 3106 6 medical 0.129534 579 4 house 0.126154 325 0 car 0.120818 538 10 vacation 0.116071 336 3 home_improvement 0.111242 3407 5 major_purchase 0.109790 1093 
+[text/plain]
+<Figure size 1800x600 with 2 Axes>
+[image/png] tmp/notebooks/extracted/Week6/figure-015.png
+
+## CELL 29 CODE execution_count=189
+accepted_plot_sample = accepted_loans.dropna(subset=["fico_average", "int_rate", "dti", "bad_loan", "grade"]).sample(
+    n=min(500, accepted_loans.dropna(subset=["fico_average", "int_rate", "dti", "bad_loan", "grade"]).shape[0]),
+    random_state=0
+).copy()
+accepted_plot_sample["Loan outcome"] = np.where(accepted_plot_sample["bad_loan"] == 1, "Bad outcome", "Current or fully paid")
+
+grade_order = ["A", "B", "C", "D", "E", "F", "G"]
+
+fig, axes = plt.subplots(1, 2, figsize=(15, 5))
+
+sns.scatterplot(
+    data=accepted_plot_sample,
+    x="fico_average",
+    y="int_rate",
+    hue="grade",
+    hue_order=grade_order,   # sorts grade order
+    alpha=0.45,
+    s=22,
+    ax=axes[0]
+)
+
+axes[0].set_title("FICO Score vs. Interest Rate by Grade")
+axes[0].set_xlabel("Average FICO Score")
+axes[0].set_ylabel("Interest Rate")
+axes[0].legend(title="Grade", bbox_to_anchor=(1.02, 1), loc="upper left")
+
+
+
+sns.scatterplot(
+    data=accepted_plot_sample,
+    x="dti",
+    y="int_rate",
+    hue="Loan outcome",
+    alpha=0.45,
+    s=22,
+    ax=axes[1]
+)
+axes[1].set_xlim(0, accepted_plot_sample["dti"].quantile(0.98))
+axes[1].set_title("Debt-to-Income vs. Interest Rate by Loan Outcome")
+axes[1].set_xlabel("Debt-to-Income Ratio")
+axes[1].set_ylabel("Interest Rate")
+axes[1].legend(title="Loan Outcome")
+
+plt.tight_layout()
+plt.show()
+
+### OUTPUT
+[text/plain]
+<Figure size 1800x600 with 2 Axes>
+[image/png] tmp/notebooks/extracted/Week6/figure-016.png
+
+## CELL 30 CODE execution_count=190
+accepted_yearly = (
+    accepted_loans
+    .dropna(subset=["issue_year"])
+    .groupby("issue_year")
+    .agg(
+        accepted_loans=("loan_amnt", "size"),
+        bad_loan_rate=("bad_loan", "mean"),
+        average_interest_rate=("int_rate", "mean")
+    )
+    .reset_index()
+)
+
+fig, axes = plt.subplots(1, 2, figsize=(15, 5))
+sns.lineplot(data=accepted_yearly, x="issue_year", y="accepted_loans", marker="o", ax=axes[0], color="steelblue")
+axes[0].set_title("Accepted Loan Volume by Issue Year")
+axes[0].set_xlabel("Issue Year")
+axes[0].set_ylabel("Number of Loans in Sample")
+
+sns.lineplot(data=accepted_yearly, x="issue_year", y="bad_loan_rate", marker="o", ax=axes[1], color="darkorange")
+axes[1].set_title("Bad-Loan Rate by Issue Year")
+axes[1].set_xlabel("Issue Year")
+axes[1].set_ylabel("Bad-Loan Rate")
+axes[1].yaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:.0%}"))
+plt.tight_layout()
+plt.show()
+
+accepted_grade_year = (
+    accepted_loans
+    .dropna(subset=["issue_year", "grade"])
+    .groupby(["issue_year", "grade"])
+    .size()
+    .unstack(fill_value=0)
+    .sort_index()
+)
+accepted_grade_share = accepted_grade_year.div(accepted_grade_year.sum(axis=1), axis=0)
+
+accepted_grade_share.plot.area(figsize=(11, 5), alpha=0.8, colormap="viridis")
+plt.title("Accepted Loan Grade Mix Over Time")
+plt.xlabel("Issue Year")
+plt.ylabel("Share of Accepted Loans")
+plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:.0%}"))
+plt.legend(title="Grade", bbox_to_anchor=(1.02, 1), loc="upper left")
+plt.tight_layout()
+plt.show()
+
+### OUTPUT
+[text/plain]
+<Figure size 1800x600 with 2 Axes>
+[image/png] tmp/notebooks/extracted/Week6/figure-017.png
+[text/plain]
+<Figure size 1320x600 with 1 Axes>
+[image/png] tmp/notebooks/extracted/Week6/figure-018.png
+
+## CELL 31 CODE execution_count=191
+accepted_outlier_columns = ["loan_amnt", "annual_inc", "dti", "revol_bal", "revol_util", "int_rate"]
+accepted_outlier_summary = []
+for column in accepted_outlier_columns:
+    values = accepted_loans[column].dropna()
+    q1, q3 = values.quantile([0.25, 0.75])
+    iqr = q3 - q1
+    lower_bound = q1 - 1.5 * iqr
+    upper_bound = q3 + 1.5 * iqr
+    accepted_outlier_summary.append({
+        "column": column,
+        "median": values.median(),
+        "min": values.min(),
+        "max": values.max(),
+        "iqr_outliers": ((values < lower_bound) | (values > upper_bound)).sum(),
+        "upper_outlier_cutoff": upper_bound
+    })
+
+display(pd.DataFrame(accepted_outlier_summary))
+
+fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+for ax, column in zip(axes, ["annual_inc", "dti", "revol_bal"]):
+    sns.boxplot(data=accepted_loans, x=column, ax=ax, color="lightsteelblue")
+    ax.set_title(f"Outliers in {column}")
+    ax.set_xlim(accepted_loans[column].quantile(0.01), accepted_loans[column].quantile(0.99))
+plt.tight_layout()
+plt.show()
+
+### OUTPUT
+[text/plain]
+       column    median     min         max  iqr_outliers  \
+0   loan_amnt  13000.00  500.00    40000.00           784   
+1  annual_inc  65000.00    0.00  8700000.00          2370   
+2         dti     17.94    0.00      999.00           479   
+3   revol_bal  11338.00    0.00   689335.00          3064   
+4  revol_util     50.40    0.00      153.00             4   
+5    int_rate     12.62    5.31       30.99           923   
+
+   upper_outlier_cutoff  
+0             38000.000  
+1            162825.000  
+2                43.665  
+3             41637.000  
+4               126.450  
+5                25.740
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } column median min max iqr_outliers upper_outlier_cutoff 0 loan_amnt 13000.00 500.00 40000.00 784 38000.000 1 annual_inc 65000.00 0.00 8700000.00 2370 162825.000 2 dti 17.94 0.00 999.00 479 43.665 3 revol_bal 11338.00 0.00 689335.00 3064 41637.000 4 revol_util 50.40 0.00 153.00 4 126.450 5 int_rate 12.62 5.31 30.99 923 25.740 
+[text/plain]
+<Figure size 1800x480 with 3 Axes>
+[image/png] tmp/notebooks/extracted/Week6/figure-019.png
+
+## CELL 32 MARKDOWN
+### Accepted Lending Club Loan Dataset Conclusions
+
+The accepted Lending Club data is the strongest dataset for the rubric because it has meaningful numeric variables, categorical risk grades, loan outcomes, and issue dates. I used an evenly spaced sample from the full file so the analysis covers the full 2007-2018 period instead of only the first rows.
+
+The bad-loan correlation chart shows that `int_rate`, FICO score, revolving utilization, debt-to-income, and annual income are the numeric variables most related to bad outcomes. The relationships are not perfect, but they are directionally reasonable: higher interest rates and lower credit scores are associated with more bad outcomes.
+
+The grade and purpose plots are the most useful business visuals. Bad-loan rates rise steadily from grade A to grade G, which means the grade variable is capturing credit risk. Some loan purposes also have worse outcomes than others. The scatterplots add context: FICO score is related to interest rate, and debt-to-income helps show affordability risk.
+
+The time plots are appropriate for this dataset because `issue_d` spans multiple years. Loan volume and grade mix change over time, and the bad-loan rate also varies by issue year. The outlier review shows extreme values in `annual_inc`, `dti`, `revol_bal`, and `revol_util`; those values should be capped, transformed, or investigated before modeling. Highly correlated fields such as `loan_amnt`/`funded_amnt` and `fico_range_low`/`fico_range_high` are likely redundant.
+
+## CELL 33 MARKDOWN
+# 4. Storytelling With Data plot
+
+Reproduce any graph of your choice in p. 86-98 of the Storytelling With Data book as best you can.  (The second half of chapter three).  You do not have to get the exact data values right, just the overall look and feel.
+
+## CELL 34 MARKDOWN
+I chose to reproduce a Storytelling With Data style slope chart. The purpose is to make one comparison easy to understand: bad-loan rates increase sharply as credit grade worsens. This fits the second half of Chapter 3 because the chart uses clear visual hierarchy, direct labels, and minimal clutter.
+
+## CELL 35 CODE execution_count=192
+# Storytelling With Data style chart: focus attention on the main pattern.
+# Data values are based on the accepted Lending Club sample from Problem 3.
+if "accepted_loans" not in globals():
+    accepted_path = Path("DATA/All Lending Club Loan Data/accepted_2007_to_2018q4.csv/accepted_2007_to_2018Q4.csv")
+    accepted_columns = ["loan_status", "grade"]
+    accepted_total_rows = sum(1 for _ in open(accepted_path, encoding="utf-8")) - 1
+    accepted_sample_every = max(accepted_total_rows // 50000, 1)
+    accepted_loans = pd.read_csv(
+        accepted_path,
+        usecols=accepted_columns,
+        skiprows=lambda row_number: row_number > 0 and row_number % accepted_sample_every != 0,
+        low_memory=False
+    )
+    accepted_loans["bad_loan"] = accepted_loans["loan_status"].isin([
+        "Charged Off", "Default", "Late (31-120 days)", "Late (16-30 days)",
+        "Does not meet the credit policy. Status:Charged Off"
+    ]).astype(int)
+grade_story = (
+    accepted_loans
+    .dropna(subset=["grade", "bad_loan"])
+    .groupby("grade")
+    .agg(bad_loan_rate=("bad_loan", "mean"), loan_count=("bad_loan", "size"))
+    .reset_index()
+    .sort_values("grade")
+)
+fig, ax = plt.subplots(figsize=(9, 5.5))
+# Use muted bars for context and one highlight color for the riskiest grades.
+colors = ["#d9d9d9" if grade not in ["F", "G"] else "#d95f02" for grade in grade_story["grade"]]
+bars = ax.bar(
+    grade_story["grade"],
+    grade_story["bad_loan_rate"],
+    color=colors,
+    edgecolor="none"
+)
+for bar, rate in zip(bars, grade_story["bad_loan_rate"]):
+    ax.text(
+        bar.get_x() + bar.get_width() / 2,
+        rate + 0.01,
+        f"{rate:.0%}",
+        ha="center",
+        va="bottom",
+        fontsize=10,
+        color="#333333"
+    )
+rate_a = grade_story.loc[grade_story["grade"] == "A", "bad_loan_rate"].iloc[0]
+rate_g = grade_story.loc[grade_story["grade"] == "G", "bad_loan_rate"].iloc[0]
+
+ax.set_title(
+    "Bad-Loan Risk Rises Sharply as Credit Grade Worsens",
+    loc="left",
+    fontsize=15,
+    weight="bold",
+    pad=12
+)
+
+ax.set_xlabel("Credit Grade")
+ax.set_ylabel("Bad-Loan Rate")
+ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:.0%}"))
+ax.set_ylim(0, grade_story["bad_loan_rate"].max() + 0.16)
+ax.grid(axis="y", alpha=0.2)
+ax.xaxis.grid(False)
+for spine in ["top", "right", "left"]:
+    ax.spines[spine].set_visible(False)
+ax.spines["bottom"].set_color("#cccccc")
+ax.tick_params(axis="y", length=0, colors="#555555")
+ax.tick_params(axis="x", colors="#333333")
+plt.tight_layout()
+plt.show()
+
+### OUTPUT
+[text/plain]
+<Figure size 1080x660 with 1 Axes>
+[image/png] tmp/notebooks/extracted/Week6/figure-020.png
+
+## CELL 36 MARKDOWN
+This chart follows the Storytelling With Data approach by leading with the main takeaway in the title, using gray bars for context, and using orange only to emphasize the riskiest grades. The direct percentage labels reduce the need to estimate values from the axis, and the annotation explains why the highlighted grades matter.

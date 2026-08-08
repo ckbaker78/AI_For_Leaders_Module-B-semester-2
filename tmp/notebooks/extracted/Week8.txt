@@ -1,0 +1,508 @@
+# Week8.ipynb
+Cells: 56
+
+
+## CELL 1 MARKDOWN
+# Week 8 - Multivariate Analysis
+
+## Please run the cells of the notebook as you get to them while reading
+
+## CELL 2 CODE execution_count=None
+import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn import decomposition
+from sklearn import linear_model
+from sklearn import metrics
+
+## CELL 3 MARKDOWN
+# 1. Lesson: Multivariate graphs
+
+## CELL 4 MARKDOWN
+In this lesson, we'll consider some multivariate plots: heatmaps and bubble plots.  We'll also consider principal component analysis and multiple regression.
+
+## CELL 5 MARKDOWN
+### Heatmaps
+
+## CELL 6 MARKDOWN
+In this plot, we use a heatmap to count the total traffic tickets given to citizens.  A heatmap requires the x and y axes to be categorical, while the color involves a third, numerical variable.  In this example, each row of the DataFrame represents a traffic ticket given to one person in a particular city and year.  The data are given as three columns (city, year, and ticket), so we must use a pivot_table to transform it into a two-dimensional grid.  The cmap is set to "Blues" in the first example, meaning that the heatmap uses only blue as its color.  However, we could also use a multicolor map like "viridis" in the second example.  I personally think "Blues" is easier to read - what do you think?  Here is a reference guide to the color maps:
+
+https://matplotlib.org/stable/gallery/color/colormap_reference.html
+
+## CELL 7 CODE execution_count=None
+np.random.seed(0)
+num_samples = 100
+city_series = np.random.choice(["New York", "Boston", "Atlanta", "Washington, D. C."], size = num_samples)
+year_series = np.random.choice([2018, 2019, 2020], size = num_samples)
+ticket_series = np.random.randint(50, 150, size = num_samples) # Traffic tickets can be from $50 to $150
+df = pd.DataFrame({"city": city_series, "year": year_series, "ticket": ticket_series})
+pivot = df.pivot_table(index = ["city"], columns = ["year"], values = "ticket", aggfunc = "sum")
+
+## CELL 8 CODE execution_count=None
+df.iloc[0:5] # first five rows of a long DataFrame
+
+### OUTPUT
+[text/plain]
+                city  year  ticket
+0           New York  2019      79
+1  Washington, D. C.  2020      71
+2             Boston  2018      75
+3           New York  2018     130
+4  Washington, D. C.  2020     110
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } city year ticket 0 New York 2019 79 1 Washington, D. C. 2020 71 2 Boston 2018 75 3 New York 2018 130 4 Washington, D. C. 2020 110 
+
+## CELL 9 CODE execution_count=None
+pivot # 2 by 2 grid showing total ticket amounts
+
+### OUTPUT
+[text/plain]
+year               2018  2019  2020
+city                               
+Atlanta             742   440   538
+Boston              775   628   922
+New York           1122   841   596
+Washington, D. C.  1258   451  1385
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } year 2018 2019 2020 city Atlanta 742 440 538 Boston 775 628 922 New York 1122 841 596 Washington, D. C. 1258 451 1385 
+
+## CELL 10 CODE execution_count=None
+ax = sns.heatmap(pivot, cmap = "Blues")
+ax.set_title("Total traffic tickets by city and year")
+
+### OUTPUT
+[text/plain]
+Text(0.5, 1.0, 'Total traffic tickets by city and year')
+[text/plain]
+<Figure size 640x480 with 2 Axes>
+[image/png] tmp/notebooks/extracted/Week8/figure-001.png
+
+## CELL 11 CODE execution_count=None
+pivot2 = df.pivot_table(index = ["city"], columns = ["year"], values = "ticket", aggfunc = "mean") # note mean, not sum this time
+ax2 = sns.heatmap(pivot2, cmap = "viridis") # do you think this is a better or worse scale than Blues?
+ax2.set_title("Average traffic ticket value by city and year")
+
+### OUTPUT
+[text/plain]
+Text(0.5, 1.0, 'Average traffic ticket value by city and year')
+[text/plain]
+<Figure size 640x480 with 2 Axes>
+[image/png] tmp/notebooks/extracted/Week8/figure-002.png
+
+## CELL 12 MARKDOWN
+### Bubble plots
+
+## CELL 13 MARKDOWN
+A bubble plot is just a scatter plot, but with the dot size representing a third variable.  Here, each data point shows a tree (I mean the kind of tree that is a plant and grows in the ground, not a decision tree), with its height, width of branches, and root depth.  The bubble size in the bubble plot represents the root depth, while the other variables are shown on the x and y axes.  From this plot, we can see that the root depth is strongly correlated with both the width of branches and the tree height.
+
+## CELL 14 CODE execution_count=None
+np.random.seed(0)
+num_samples = 100
+height_series = np.random.randint(10, 100, size = num_samples) # tree height
+width_series = height_series * np.maximum(np.random.normal(scale = 0.3, loc = 1, size = num_samples), 0.25) # strongly related to height
+root_series = height_series * np.maximum(np.random.normal(scale = 0.2, loc = 0.7, size = num_samples), 0.3) # strongly related to height
+df2 = pd.DataFrame({'height': height_series, 'width': width_series, 'root': root_series})
+minroot = root_series.min()
+maxroot = root_series.max()
+maxbubble = 300
+ax = sns.scatterplot(data = df2, x = "height", y = "width", size = "root", sizes = (minroot / maxroot * maxbubble, maxbubble))
+ax.set_xlabel("tree height")
+ax.set_ylabel("width of branches")
+
+### OUTPUT
+[text/plain]
+Text(0, 0.5, 'width of branches')
+[text/plain]
+<Figure size 640x480 with 1 Axes>
+[image/png] tmp/notebooks/extracted/Week8/figure-003.png
+
+## CELL 15 MARKDOWN
+### Principal Component Analysis
+
+## CELL 16 MARKDOWN
+Principal Component Analysis can be thought of as a way to use one (or a few) linear combinations of the coordinates in order to explain all of the coordinates.  It is most useful when there are strong correlations between some or all of the coordinates.  Principal Component Analysis can show us which linear combinations are most (and least) useful for explaining the data.
+
+With the trees data, the three values (height, width, and root) are highly correlated.  For this reason, Principal Component Analysis shows that most of the variance can be explained by a single value which is a linear combination of height, width, and root.  What this means is that if the first components_ vector in the code below (the "first principal component") is \[a, b, c\], for some specific numbers a, b, and c, then the value v = a * (height - mu_h) + b * (width - mu_w) + c * (root - mu_r), where the mu's are the means, is highly informative about the values of height, width, and root.  In this case, because height, width, and root are so highly correlated, we can almost assume that all of the data is located along an axis defined by the vector \[a, b, c\].  The point v * \[a, b, c\] + (mean vector) = (a * (height - mu_h) + b * (width - mu_w) + c * (root - mu_r)) * \[a, b, c\] + (mean vector) is therefore approximately equal to the data point (height, width, root) in question.  The mean vector is \[mu_h, mu_w, mu_r\].  Importantly, there is still variance unexplained by this one value - just knowing v * \[a, b, c\] does not tell you the height, width, and root with 100% accuracy.  If the second principal component is \[d, e, f\], then we could approximate the tree vector even more accurately as: (height, width, root) = (a * (height - mu_h) + b * (width - mu_w) + c * (root - mu_r)) * \[a, b, c\] + (d * (height - mu_h) + e * (width - mu_w) + f * (root - mu_r)) * \[d, e, f\] + (mean vector).
+
+The printing of "components_", below, shows the first principal component \[a, b, c\].  If you draw a vector in the direction shown, you will be heading in the direction where the values height, width, and root change most rapidly.  A later computation shows all three principal component vectors.
+
+**Optional exercise for the reader:** show that if all three principal components are included, then equality is exact.  This is going to be true simply because the principal components are orthonormal: the projections onto a complete set of orthonormal vectors always add up to the original vector.
+
+(height, width, root) = (a * (height - mu_h) + b * (width - mu_w) + c * (root - mu_r)) * \[a, b, c\] + (d * (height - mu_h) + e * (width - mu_w) + f * (root - mu_r)) * \[d, e, f\] + (g * (height - mu_h) + h * (width - mu_w) + i * (root - mu_r)) * \[g, h, i\] + \[mu_h, mu_w, mu_r\].
+
+For this proof, we must use the fact that the principal component vectors are orthonormal.  That is, any pair of them are orthogonal, even with a transpose (ad + be + cf = 0, ag + bh + ci = 0, dg + eh + fi = 0, ab + de + gh = 0, ac + df + gi = 0, bc + ef + hi = 0) and any one of them is a unit vector, even with a transpose (a^2 + b^c + c^2 = 1, d^2 + e^2 + f^2 = 1, g^2 + h^2 + i^2 = 1, a^2 + d^2 + g^2 = 1, b^2 + e^2 + h^2 = 1, c^2 + f^2 + i^2 = 1).  If you write out the equation above as a single vector, then apply the orthonormality rules, you should be able to prove equality.
+
+## CELL 17 CODE execution_count=None
+pca = decomposition.PCA(n_components = 1)
+pca.fit(df2)
+print(f"The first principal component explains {pca.explained_variance_ratio_[0]} of the variance")
+print(f"The components_ vector is [a, b, c] = {pca.components_}")
+mu_h, mu_w, mu_r = df2.mean().values
+print(f"(height, width, root) is approximately equal to ({pca.components_[0][0]:.2} * (height - {mu_h:.2}) + {pca.components_[0][1]:.2} * (width - {mu_w:.2}) + {pca.components_[0][2]:.2} * (root - {mu_r:.2})) * ({pca.components_[0][0]:.2}, {pca.components_[0][1]:.2}, {pca.components_[0][2]:.2}) + ({mu_h:.2}, {mu_w:.2}, {mu_r:.2})")
+print("Examples: (estimating the the vector equals its projection onto the first principal component)")
+df_example = df2.copy()
+df_example["v"] = pca.components_[0][0] * (df2["height"] - mu_h) + pca.components_[0][1] * (df2["width"] - mu_w) + pca.components_[0][2] * (df2["root"] - mu_r)
+df_example["height_est"] = df_example["v"] * pca.components_[0][0] + mu_h
+df_example["width_est"] = df_example["v"] * pca.components_[0][1] + mu_w
+df_example["root_est"] = df_example["v"] * pca.components_[0][2] + mu_r
+print(df_example.iloc[0:5])
+print("Means:")
+print(f"mu_h = {mu_h:.3}", f"mu_w = {mu_w:.3}", f"mu_r = {mu_r:.3}")
+
+### OUTPUT
+The first principal component explains 0.8686108480944678 of the variance
+The components_ vector is [a, b, c] = [[0.59031629 0.71908728 0.36666083]]
+(height, width, root) is approximately equal to (0.59 * (height - 5.6e+01) + 0.72 * (width - 5.9e+01) + 0.37 * (root - 3.6e+01)) * (0.59, 0.72, 0.37) + (5.6e+01, 5.9e+01, 3.6e+01)
+Examples: (estimating the the vector equals its projection onto the first principal component)
+   height       width       root          v  height_est  width_est   root_est
+0      54   72.139334  31.517932   6.287751   60.001762  63.563941  38.673095
+1      57   49.169527  33.768693  -7.633330   51.783921  53.553468  33.568780
+2      74   83.443733  28.770850  25.215680   71.175227  77.174773  45.613225
+3      77   76.353866  53.061241  30.794730   74.468631  81.186597  47.658844
+4      77  111.095365  26.006307  45.856916   83.360084  92.017624  53.181557
+Means:
+mu_h = 56.3 mu_w = 59.0 mu_r = 36.4
+
+## CELL 18 MARKDOWN
+If we were to choose a second or third component to preserve, that values below show that each would explain a small, additional amount of the variance.  This means that with this particular dataset, we should likely do PCA using only one component and not two.  If the components' explained variances were closer in magnitude to each other, we might have to include two or even all three values to explain the data.
+
+## CELL 19 CODE execution_count=None
+pca3 = decomposition.PCA(n_components = 3)
+pca3.fit(df2)
+print(pca3.explained_variance_ratio_)
+print(pca3.components_)
+
+### OUTPUT
+[0.86861085 0.09414617 0.03724298]
+[[ 0.59031629  0.71908728  0.36666083]
+ [ 0.32633701 -0.62809127  0.70640322]
+ [ 0.73826204 -0.29734633 -0.6054373 ]]
+
+## CELL 20 MARKDOWN
+The principal component vectors shown are orthogonal to each other (their dot product is basically zero).  Here, we check that using the first two vectors.
+
+## CELL 21 CODE execution_count=None
+print(np.array(pca3.components_[0]).dot(np.array(pca3.components_[1])))
+
+### OUTPUT
+5.551115123125783e-17
+
+## CELL 22 MARKDOWN
+We can use the projection onto the first principal component as if it were a new feature.  For instance, we could plot a histogram of the data against the magnitude of the projection onto the first principal component.  In fact, for some purposes, this magnitude (which we have called v) might make a better feature for data analysis than either height, width, or root.  We must subtract off the mean before the dot product; the understanding is that this represents the component of the data relative to the mean.
+
+## CELL 23 CODE execution_count=None
+((df2 - df2.mean()).dot(np.array(pca.components_[0]))).hist()
+
+### OUTPUT
+[text/plain]
+<Axes: >
+[text/plain]
+<Figure size 640x480 with 1 Axes>
+[image/png] tmp/notebooks/extracted/Week8/figure-004.png
+
+## CELL 24 CODE execution_count=None
+# Showing that this is the same as the value we've called "v"
+(df_example["v"] - (df2 - df2.mean()).dot(np.array(pca.components_[0]))).max()
+
+### OUTPUT
+[text/plain]
+np.float64(1.4210854715202004e-14)
+
+## CELL 25 MARKDOWN
+### Linear Regression
+
+Now let's run a linear regression model to predict the root from the height and width, as well as predicting the third principal component from the first and second.  Which is easier to predict?
+
+### Predicting the root from the height and width
+
+## CELL 26 CODE execution_count=None
+linreg = linear_model.LinearRegression()
+linreg.fit(df2[['height', 'width']], df2['root'])
+preds = linreg.predict(df2[['height', 'width']])
+metrics.mean_squared_error(preds, df2['root']) # Mean squared error as a metric
+
+### OUTPUT
+[text/plain]
+138.22487356329611
+
+## CELL 27 CODE execution_count=None
+np.corrcoef(preds, df2['root']) # Correlation coefficient as a metric
+
+### OUTPUT
+[text/plain]
+array([[1.        , 0.79468295],
+       [0.79468295, 1.        ]])
+
+## CELL 28 MARKDOWN
+### Predicting the third principal component from the first and second
+
+## CELL 29 CODE execution_count=None
+first_principal_component_score = (df2 - df2.mean()).dot(np.array(pca3.components_[0]))
+second_principal_component_score = (df2 - df2.mean()).dot(np.array(pca3.components_[1]))
+third_principal_component_score = (df2 - df2.mean()).dot(np.array(pca3.components_[2]))
+
+## CELL 30 CODE execution_count=None
+linreg_first = linear_model.LinearRegression()
+pc_X = np.array([first_principal_component_score, second_principal_component_score]).T
+linreg_first.fit(pc_X, third_principal_component_score)
+preds = linreg_first.predict(pc_X)
+metrics.mean_squared_error(preds, third_principal_component_score) # The mean squared error is a bit smaller here.
+
+### OUTPUT
+[text/plain]
+78.74928905273173
+
+## CELL 31 CODE execution_count=None
+np.corrcoef(preds, third_principal_component_score) # More importantly, the correlation is basically zero
+
+### OUTPUT
+[text/plain]
+array([[1.00000000e+00, 1.88150551e-15],
+       [1.88150551e-15, 1.00000000e+00]])
+
+## CELL 32 MARKDOWN
+Here, we see that the projections of the first two principal components have no ability to predict the projection of the third, when measured by correlation.  This is a special property of principal components.  It is intended to ensure that the each component gives new information not present in the previous components.
+
+The mean_squared_error is misleading - it makes it look like the error is less for the second computation than the first; but the correlation coefficient is giving more useful information here.  We cannot compare the mean squared error for two totally different computations, because mean squared error is highly dependent on the magnitudes of the values in question!
+
+## CELL 33 MARKDOWN
+# 2. Weekly graph question
+
+## CELL 34 MARKDOWN
+The tree data above can be graphed via either a pairplot or a bubble plot.  What are the advantages and disadvantages of each?
+
+## CELL 35 CODE execution_count=None
+ax = sns.scatterplot(data = df2, x = "height", y = "width", size = "root", sizes = (minroot / maxroot * maxbubble, maxbubble))
+ax.set_xlabel("tree height")
+ax.set_ylabel("width of branches")
+
+### OUTPUT
+[text/plain]
+Text(0, 0.5, 'width of branches')
+[text/plain]
+<Figure size 640x480 with 1 Axes>
+[image/png] tmp/notebooks/extracted/Week8/figure-005.png
+
+## CELL 36 CODE execution_count=None
+sns.pairplot(df2)
+
+### OUTPUT
+[text/plain]
+<seaborn.axisgrid.PairGrid at 0x11f944c20>
+[text/plain]
+<Figure size 750x750 with 12 Axes>
+[image/png] tmp/notebooks/extracted/Week8/figure-006.png
+
+## CELL 37 MARKDOWN
+### Weekly graph response
+
+The **bubble plot** is compact: it shows all three variables in one panel, makes the positive height-width relationship immediate, and uses bubble size to show that deeper roots generally occur on larger trees. Its weakness is precision. People compare positions more accurately than areas, large bubbles overlap, and the root-depth pattern can be difficult to judge.
+
+The **pairplot** is more complete. It shows every pairwise relationship in both orientations and displays each variable's distribution on the diagonal. It makes the strong positive relationships among height, width, and root easier to verify and can reveal unusual values. Its disadvantages are repetition and space: for only three variables it already uses nine panels, and the display becomes unwieldy as variables are added.
+
+For this dataset, the pairplot is better for analysis; the bubble plot is better for a concise presentation.
+
+## CELL 38 MARKDOWN
+# 3. Homework - Grocery Store Correlation
+
+## CELL 39 MARKDOWN
+In a particular state, the price of milk is highly correlated with the price of cheese.  Neither is correlated with the price of bread.
+
+## CELL 40 CODE execution_count=None
+num_points = 1000
+np.random.seed(0)
+milk_series = np.maximum(np.random.normal(scale = 0.5, loc = 2.00, size = num_points), 1)
+cheese_series = milk_series * np.maximum(np.random.normal(scale = 0.1, loc = 1.00, size = num_points), 0.5)
+bread_series = np.maximum(np.random.normal(scale = 1.0, loc = 3.00, size = num_points), 1)
+df3 = pd.DataFrame({"milk": milk_series, "cheese": cheese_series, "bread": bread_series})
+
+## CELL 41 MARKDOWN
+### Heatmap
+
+Draw a heatmap where the x-axis category is a discretized version of the milk price and the y-axis category is a discretized version of the cheese price.  That is, you can choose "low", "medium", and "high" for the milk price, or, if you prefer, you can choose 1, 2, 3, 4, and 5 for the five quintiles.  (The first quintile should include the bottom fifth of the data, the second quintile contains the next fifth, and so on).
+
+Try Googling "how do I change numerical to categorical data" to get advice on this.
+
+## CELL 42 CODE execution_count=None
+# Divide milk and cheese prices into equal-sized quintiles, then count observations.
+grocery = df3.copy()
+labels = ["Q1 (lowest)", "Q2", "Q3", "Q4", "Q5 (highest)"]
+grocery["milk_quintile"] = pd.qcut(grocery["milk"], 5, labels=labels)
+grocery["cheese_quintile"] = pd.qcut(grocery["cheese"], 5, labels=labels)
+
+price_counts = pd.crosstab(grocery["cheese_quintile"], grocery["milk_quintile"])
+plt.figure(figsize=(8, 6))
+ax = sns.heatmap(price_counts, annot=True, fmt="d", cmap="Blues", cbar_kws={"label": "Number of stores"})
+ax.set_title("Milk and Cheese Prices Usually Fall in the Same Quintile", loc="left", weight="bold")
+ax.set_xlabel("Milk-price quintile")
+ax.set_ylabel("Cheese-price quintile")
+plt.tight_layout()
+plt.show()
+
+### OUTPUT
+[text/plain]
+<Figure size 800x600 with 2 Axes>
+[image/png] tmp/notebooks/extracted/Week8/figure-007.png
+
+## CELL 43 MARKDOWN
+**Interpretation.** The darkest cells cluster along the diagonal, especially where milk and cheese are in the same or neighboring quintiles. This is the expected visual signature of their strong positive correlation. Off-diagonal counts come from the random variation added when cheese prices were generated.
+
+## CELL 44 MARKDOWN
+### Bubble plot
+
+Try all three possible bubble plots: one where the size of the dot is determined by the milk price, one where it's the cheese price, and one where it's the bread price.  Which of these plots is / are the most informative and useful?
+
+## CELL 45 CODE execution_count=None
+# Compare all three assignments of x, y, and bubble size.
+fig, axes = plt.subplots(1, 3, figsize=(17, 5))
+specifications = [
+    ("cheese", "bread", "milk", "Size = milk"),
+    ("milk", "bread", "cheese", "Size = cheese"),
+    ("milk", "cheese", "bread", "Size = bread"),
+]
+for ax, (x, y, size, title) in zip(axes, specifications):
+    sns.scatterplot(data=grocery, x=x, y=y, size=size, sizes=(15, 180), alpha=0.48,
+                    color="#4C78A8", legend=False, ax=ax)
+    ax.set_title(title, weight="bold")
+    ax.grid(alpha=0.2)
+fig.suptitle("Three Ways to Encode Grocery Prices in a Bubble Plot", fontsize=15, weight="bold", y=1.02)
+plt.tight_layout()
+plt.show()
+
+### OUTPUT
+[text/plain]
+<Figure size 1700x500 with 3 Axes>
+[image/png] tmp/notebooks/extracted/Week8/figure-008.png
+
+## CELL 46 MARKDOWN
+**Interpretation.** The first two plots are the most informative because bubble size encodes one of the correlated variables (milk or cheese), so larger bubbles tend to occur at larger values of the other. However, the third plot is the clearest demonstration of the data-generating relationships: milk and cheese form a narrow rising band, while the unrelated bread price appears as bubble sizes with no systematic pattern. Bubble area is difficult to compare precisely, so a labeled scatterplot or pairplot would still be preferable for careful analysis.
+
+## CELL 47 MARKDOWN
+### Principal component analysis
+
+Perform a principal component analysis of the data.  What are the first, second, and third component vectors?
+
+Challenge question: explain why the three vectors point as they do.  (Could someone have guessed the order of the three vectors, even before running the analysis?)
+
+## CELL 48 CODE execution_count=None
+# Standardize first so variables with different spreads receive comparable weight.
+from sklearn.preprocessing import StandardScaler
+
+grocery_features = ["milk", "cheese", "bread"]
+grocery_scaled = StandardScaler().fit_transform(grocery[grocery_features])
+grocery_pca = decomposition.PCA(n_components=3).fit(grocery_scaled)
+
+component_table = pd.DataFrame(
+    grocery_pca.components_,
+    columns=grocery_features,
+    index=["PC1", "PC2", "PC3"]
+)
+variance_table = pd.DataFrame({
+    "explained_variance_ratio": grocery_pca.explained_variance_ratio_,
+    "cumulative_variance": np.cumsum(grocery_pca.explained_variance_ratio_)
+}, index=component_table.index)
+display(component_table.round(3))
+display(variance_table.style.format("{:.1%}"))
+
+### OUTPUT
+[text/plain]
+      milk  cheese  bread
+PC1  0.706   0.706 -0.050
+PC2  0.032   0.038  0.999
+PC3  0.707  -0.707  0.004
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } milk cheese bread PC1 0.706 0.706 -0.050 PC2 0.032 0.038 0.999 PC3 0.707 -0.707 0.004 
+[text/plain]
+<pandas.io.formats.style.Styler at 0x120283620>
+[text/html]
+ &nbsp; explained_variance_ratio cumulative_variance PC1 64.2% 64.2% PC2 33.3% 97.4% PC3 2.6% 100.0% 
+
+## CELL 49 MARKDOWN
+**Interpretation and challenge response.** Component signs can reverse without changing their meaning. PC1 gives milk and cheese similar weights and almost no weight to bread, so it measures their shared price level. PC2 is dominated by bread because bread is independent of the other prices. PC3 gives milk and cheese opposite signs, capturing the small residual difference between two prices that usually move together. This order could be anticipated before running PCA: the shared milk-cheese movement should explain the most variance, independent bread should come next, and the milk-versus-cheese difference should explain the least.
+
+## CELL 50 MARKDOWN
+### Linear regression
+
+Use linear regression to predict the milk price from the other two, the cheese price from the other two, and the bread price from the other two.  Which prediction(s) work the best, and why?
+
+## CELL 51 CODE execution_count=None
+# Predict each price from the other two and compare out-of-sample performance.
+from sklearn.model_selection import train_test_split
+
+regression_results = []
+for target in ["milk", "cheese", "bread"]:
+    predictors = [column for column in grocery_features if column != target]
+    X_train, X_test, y_train, y_test = train_test_split(
+        grocery[predictors], grocery[target], test_size=0.25, random_state=42
+    )
+    model = linear_model.LinearRegression().fit(X_train, y_train)
+    predictions = model.predict(X_test)
+    regression_results.append({
+        "target": target,
+        "predictors": ", ".join(predictors),
+        "R_squared": metrics.r2_score(y_test, predictions),
+        "RMSE": metrics.mean_squared_error(y_test, predictions) ** 0.5,
+    })
+
+regression_results = pd.DataFrame(regression_results).sort_values("R_squared", ascending=False)
+display(regression_results.style.format({"R_squared": "{:.3f}", "RMSE": "{:.3f}"}))
+
+### OUTPUT
+[text/plain]
+<pandas.io.formats.style.Styler at 0x1201c3610>
+[text/html]
+ &nbsp; target predictors R_squared RMSE 0 milk cheese, bread 0.837 0.199 1 cheese milk, bread 0.836 0.211 2 bread milk, cheese -0.023 0.989 
+
+## CELL 52 MARKDOWN
+**Interpretation.** Milk and cheese are predicted best because each contains substantial information about the other; adding bread contributes essentially no useful signal. Bread is predicted poorly because it was generated independently of both milk and cheese. Out-of-sample R-squared is the fairest comparison of predictive usefulness here; RMSE values are in different target units and scales.
+
+## CELL 53 MARKDOWN
+# 4. Storytelling With Data plot
+
+## CELL 54 MARKDOWN
+Reproduce any graph of your choice in p. 120-135 of the Storytelling With Data book as best you can.  ("Use color consistently" in chapter four up to "Create a clear visual hierarchy of information" in chapter five.)    You do not have to get the exact data values right, just the overall look and feel.
+
+## CELL 55 CODE execution_count=None
+# Recreate the look and lesson of Figure 5.3: highlight only the important series.
+# Source reference: Knaflic, Storytelling with Data, Chapter 5, Figure 5.3.
+education = ["Less than high school", "High school", "Some college", "Bachelor's or more"]
+marriages_2011 = np.array([220, 760, 610, 720])
+marriages_2012 = np.array([210, 745, 600, 875])
+x = np.arange(len(education))
+
+fig, ax = plt.subplots(figsize=(10.5, 6))
+for idx, label in enumerate(education):
+    color = "#E76F51" if label == "Bachelor's or more" else "#C9CDD2"
+    ax.plot([x[idx]-0.14, x[idx]+0.14], [marriages_2011[idx], marriages_2012[idx]],
+            color=color, linewidth=3, solid_capstyle="round")
+    ax.scatter([x[idx]-0.14, x[idx]+0.14], [marriages_2011[idx], marriages_2012[idx]],
+               color=color, s=75, zorder=3)
+    ax.text(x[idx]-0.14, marriages_2011[idx]-38, "2011", ha="center", color="#777777", fontsize=9)
+    ax.text(x[idx]+0.14, marriages_2012[idx]+26, "2012", ha="center", color=color, fontsize=9,
+            weight="bold" if idx == 3 else "normal")
+
+ax.annotate("The increase is concentrated among\npeople with a bachelor's degree or more",
+            xy=(x[-1]+0.14, marriages_2012[-1]), xytext=(2.05, 1010),
+            arrowprops=dict(arrowstyle="-", color="#E76F51", lw=1.5),
+            color="#E76F51", fontsize=11, weight="bold")
+ax.set_xticks(x, education)
+ax.set_ylim(0, 1100)
+ax.set_ylabel("New marriages (illustrative index)")
+ax.set_title("The Rise in New Marriages Was Driven by College Graduates", loc="left", fontsize=16, weight="bold")
+ax.grid(axis="y", color="#E9EAEC")
+for spine in ["top", "right", "left"]:
+    ax.spines[spine].set_visible(False)
+ax.tick_params(axis="y", length=0, colors="#777777")
+ax.tick_params(axis="x", length=0)
+plt.tight_layout()
+plt.show()
+
+### OUTPUT
+[text/plain]
+<Figure size 1050x600 with 1 Axes>
+[image/png] tmp/notebooks/extracted/Week8/figure-009.png
+
+## CELL 56 MARKDOWN
+**Design note.** This reproduction follows the central lesson of Figure 5.3: color is reserved for the series that carries the message, while the other categories are pushed into grey context. The action title and direct annotation state the intended conclusion so the audience does not have to discover it unaided. Values are illustrative, as the assignment permits.

@@ -1,0 +1,652 @@
+# Week1.ipynb
+Cells: 68
+
+
+## CELL 1 MARKDOWN
+# Week 1 - Preprocessing
+
+## Please run the cells of the notebook as you get to them while reading
+
+## CELL 2 CODE execution_count=1
+import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta
+
+## CELL 3 MARKDOWN
+# 1. Lesson on how to search for Python commands
+
+Let's consider a few possible ways to learn about Python programming.  Let's suppose you want to learn how to produce a short summary of the information in your DataFrame.
+
+1. Your **instructor** could provide the information.
+
+You could be provided with a lesson about functions like info() and describe().  If you have a pandas DataFrame called df, then you can summarize its contents using df.info() or df.describe().  df.info() provides a list of column names with their counts and data types.  df.describe() will provide information such as the mean, min, max, standard deviation, and quantiles.  Thus:
+
+## CELL 4 CODE execution_count=2
+df = pd.DataFrame([[1, 4], [2, 5], [3, 6], [4, 7]], columns = ['A', 'B'])
+df.describe()
+
+### OUTPUT
+[text/plain]
+              A         B
+count  4.000000  4.000000
+mean   2.500000  5.500000
+std    1.290994  1.290994
+min    1.000000  4.000000
+25%    1.750000  4.750000
+50%    2.500000  5.500000
+75%    3.250000  6.250000
+max    4.000000  7.000000
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } A B count 4.000000 4.000000 mean 2.500000 5.500000 std 1.290994 1.290994 min 1.000000 4.000000 25% 1.750000 4.750000 50% 2.500000 5.500000 75% 3.250000 6.250000 max 4.000000 7.000000 
+
+## CELL 5 MARKDOWN
+In this describe() result, we see that the two columns A and B each have four elements.  The means and other statistics are shown.
+
+2. You could look up the information on **Google**.
+
+If I Google the question "how do I briefly summarize the contents of a dataframe using Python," I receive the following link (among others), which discusses the describe() command mentioned above:
+
+https://www.w3schools.com/python/pandas/ref_df_describe.asp
+
+It also provide the complete usage information:
+
+dataframe.describe(percentiles, include, exclude, datetime_is_numeric)
+
+It explains that "percentiles" is set by default to [0.25, 0.5, 0.75] but we could change that.  Let's try it!  Since there are three intervals here rather than four, it might be more meaningful to ask about a 33rd and 67th percentile rather than 25, 50, and 75.  We can use 1/3 for 0.33 and 2/3 for 0.67 to get the exact percentile values.
+
+## CELL 6 CODE execution_count=3
+df = pd.DataFrame([[1, 4], [2, 5], [3, 6], [4, 7]], columns = ['A', 'B'])
+df.describe(percentiles = [1/3, 2/3])
+
+### OUTPUT
+[text/plain]
+              A         B
+count  4.000000  4.000000
+mean   2.500000  5.500000
+std    1.290994  1.290994
+min    1.000000  4.000000
+33.3%  2.000000  5.000000
+66.7%  3.000000  6.000000
+max    4.000000  7.000000
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } A B count 4.000000 4.000000 mean 2.500000 5.500000 std 1.290994 1.290994 min 1.000000 4.000000 33.3% 2.000000 5.000000 66.7% 3.000000 6.000000 max 4.000000 7.000000 
+
+## CELL 7 MARKDOWN
+Apparently, the 50% value (the median) stays even though we did not specifically request it.
+
+3. You could look up the official **documentation**.
+
+Now that we know we want the pandas describe() function, try Googling: pandas documentation describe.
+
+Here is the general documentation page for pandas:
+
+https://pandas.pydata.org/docs/index.html
+
+Here is the specific page for the describe() function:
+
+https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.describe.html
+
+When I look at this, it appears to be showing the most recent (currently 2.2) version of pandas; this is shown in the upper right corner.
+
+4. You could also ask **ChatGPT**.
+
+Let's try it.  ChatGPT, "how do I briefly summarize the contents of a dataframe using Python"
+
+When I do this, ChatGPT mentions describe() among other options, but does not go into detail.  However, I could ask it.  ChatGPT, "tell me more about describe() in Python for summarizing dataframes."
+
+Then, I get a good explanation of describe(), although it does not mention the percentiles option.  One advantage of using Google or the documentation in addition of ChatGPT is that these sources may provide interesting information that does not directly answer our question.  Thus, we might not have known about the various arguments, such as percentiles, if we only used ChatGPT.  A second issue is that ChatGPT sometimes hallucinates (it makes up information).  In general, by examining multiple sources - Google, documentation, and ChatGPT - we can get more information.
+
+## CELL 8 MARKDOWN
+# 2. Weekly graph question
+
+## CELL 9 MARKDOWN
+In Storytelling With Data, on page 1: examine the pie chart graph in the upper left corner of the graphs.  Please write a short explanation of the pros and cons of this graph.  What do you think of the choice of pie chart as a format?  The color scheme?  The legend?  The title?  How would you draw it differently if you were creating this graph?
+
+## CELL 10 MARKDOWN
+# 3. Homework - Bank Customers
+
+I will begin by creating a file for you to analyze.  I will show you all of the steps I used to create it.  Please run this code in order to create and save a file about bank customers.
+
+### The numbered problems are for you to solve.
+
+## CELL 11 CODE execution_count=4
+num_customers = 100
+np.random.seed(0)
+
+## CELL 12 CODE execution_count=5
+df_bank = pd.DataFrame(columns = ["CustomerID"])
+
+## CELL 13 CODE execution_count=6
+df_bank["CustomerID"] = [str(x) for x in np.arange(num_customers)]
+
+## CELL 14 CODE execution_count=7
+start = datetime(1950, 1, 1)
+end = datetime(2024, 1, 1)
+numdays = (end - start).days
+random_days = np.random.randint(0, numdays, size = num_customers)
+df_bank["BirthDate"] = start + pd.to_timedelta(random_days, unit='D')
+df_bank["BirthDate"] = df_bank["BirthDate"].dt.strftime('%Y-%m-%d')
+
+## CELL 15 CODE execution_count=8
+def make_ssn_string(num):
+    ssn_str = f'{num:09}'
+    return ssn_str[0:3] + "-" + ssn_str[3:5] + "-" + ssn_str[5:9]
+ssn_vector_func = np.vectorize(make_ssn_string)
+df_bank["SSN"] = ssn_vector_func(np.random.randint(0, 999999999, size = num_customers))
+
+## CELL 16 CODE execution_count=9
+df_bank["AccountID"] = np.random.randint(0, num_customers, size = num_customers)
+
+## CELL 17 CODE execution_count=10
+random_days = np.random.randint(0, 365 * 80, size = num_customers)
+df_bank["AccountOpened"] = (pd.to_datetime(df_bank["BirthDate"]) + pd.to_timedelta(random_days, unit='D')).dt.strftime('%Y-%m-%d')
+
+## CELL 18 CODE execution_count=11
+df_bank.loc[0, "BirthDate"] = "1980"
+df_bank.loc[1, "BirthDate"] = "no date"
+
+## CELL 19 CODE execution_count=12
+df_bank.loc[2, "AccountID"] = np.nan
+
+## CELL 20 CODE execution_count=13
+df_bank["AccountType"] = np.random.choice(["checking", "savings", "cd"], size = num_customers)
+
+## CELL 21 MARKDOWN
+Load the bank_customers.csv file.  (There is no practical reason to save it, then load it - we're just demonstrating how this would be done.)
+I am calling the loaded df by a new name, df_bank_loaded, to make clear why it's not the same variable as the old df.  Of course, in actuality the two contain the exact same data!  But it's good to get in the habit of naming things carefully.
+
+## CELL 22 CODE execution_count=14
+df_bank.loc[num_customers - 1] = df.loc[0]
+df_bank.to_csv("bank_customers.csv", index=False)
+
+## CELL 23 CODE execution_count=15
+df_bank_loaded = pd.read_csv("bank_customers.csv")
+
+## CELL 24 MARKDOWN
+1. Use describe() and info() to analyze the data.   Also, look at the first few rows.
+
+## CELL 25 MARKDOWN
+Suggested Google Search or ChatGPT prompt: "how do I use the describe function in python"
+
+Example Google result: https://www.w3schools.com/python/pandas/ref_df_describe.asp
+
+## CELL 26 CODE execution_count=16
+# The first few rows
+df_bank_loaded.iloc[0:5]
+
+
+df_bank_loaded.describe() # describing the data
+
+df_bank_loaded.head(5) # looking at the first few rows
+
+df_bank_loaded.info()
+
+### OUTPUT
+<class 'pandas.DataFrame'>
+RangeIndex: 100 entries, 0 to 99
+Data columns (total 6 columns):
+ #   Column         Non-Null Count  Dtype  
+---  ------         --------------  -----  
+ 0   CustomerID     99 non-null     float64
+ 1   BirthDate      99 non-null     str    
+ 2   SSN            99 non-null     str    
+ 3   AccountID      98 non-null     float64
+ 4   AccountOpened  99 non-null     str    
+ 5   AccountType    99 non-null     str    
+dtypes: float64(2), str(4)
+memory usage: 8.4 KB
+
+## CELL 27 MARKDOWN
+If you used describe() and info(), you now know that BirthDate and AccountOpened are strings.  But we want them to be dates.  Let's convert them to dates (or Timestamps in pandas).  When we try this, we get a ValueError.
+
+## CELL 28 CODE execution_count=17
+try:
+    df_bank_loaded["BirthDate"] = pd.to_datetime(df_bank_loaded["BirthDate"], format='%Y-%m-%d')
+    print("It worked!")
+except ValueError as e:
+    print(f"ValueError for BirthDate: {e}")
+
+### OUTPUT
+ValueError for BirthDate: time data "1980" doesn't match format "%Y-%m-%d". You might want to try:
+    - passing `format` if your strings have a consistent format;
+    - passing `format='ISO8601'` if your strings are all ISO8601 but not necessarily in exactly the same format;
+    - passing `format='mixed'`, and the format will be inferred for each element individually. You might want to use `dayfirst` alongside this.
+
+## CELL 29 CODE execution_count=18
+try:
+    df_bank_loaded["AccountOpened"] = pd.to_datetime(df_bank_loaded["AccountOpened"], format='%Y-%m-%d')
+    print("It worked!")
+except ValueError as e:
+    print(f"ValueError for AccountOpened: {e}")
+
+### OUTPUT
+It worked!
+
+## CELL 30 MARKDOWN
+The simple way to fix this is to remove the rows that have bad dates for BirthDate.  I Googled:
+
+"How to remove rows from a dataframe that have poorly formatted dates using python"
+
+https://stackoverflow.com/questions/21556744/pandas-remove-rows-whose-date-does-not-follow-specified-format
+
+This recommends that I verify that the date is a string of length 10, because YYYY-MM-DD has that length:
+
+df1\[df1.BirthDate.str.len() !=10]
+
+## CELL 31 CODE execution_count=19
+len(df_bank_loaded[df_bank_loaded.BirthDate.str.len() == 10])
+
+### OUTPUT
+[text/plain]
+97
+
+## CELL 32 CODE execution_count=20
+df_bank_loaded[df_bank_loaded.BirthDate.str.len() != 10].iloc[0:5]
+
+### OUTPUT
+[text/plain]
+    CustomerID BirthDate          SSN  AccountID AccountOpened AccountType
+0          0.0      1980  530-47-1866        4.0    1959-12-06    checking
+1          1.0   no date  682-76-9175       67.0    2039-02-20          cd
+99         NaN       NaN          NaN        NaN           NaT         NaN
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } CustomerID BirthDate SSN AccountID AccountOpened AccountType 0 0.0 1980 530-47-1866 4.0 1959-12-06 checking 1 1.0 no date 682-76-9175 67.0 2039-02-20 cd 99 NaN NaN NaN NaN NaT NaN 
+
+## CELL 33 MARKDOWN
+Now we can make this permanent, creating a new DataFrame df_bank_datefix.
+I am making a copy in order to ensure that df_bank_datefix is a new DataFrame rather than being a slice of the old one.
+
+## CELL 34 CODE execution_count=21
+df_bank_datefix = df_bank_loaded[df_bank_loaded.BirthDate.str.len() == 10].copy()
+
+## CELL 35 MARKDOWN
+Test again:
+
+## CELL 36 CODE execution_count=22
+try:
+    df_bank_datefix["BirthDate"] = pd.to_datetime(df_bank_datefix["BirthDate"], format='%Y-%m-%d')
+    print("It worked!")
+except ValueError as e:
+    print(f"ValueError: {e}")
+
+### OUTPUT
+It worked!
+
+## CELL 37 MARKDOWN
+2. To check that it worked, use a summary function that will tell you if the BirthDate field is now a datetime type
+
+## CELL 38 CODE execution_count=23
+df_bank_datefix.info() # summary function to tell us variable types
+
+### OUTPUT
+<class 'pandas.DataFrame'>
+RangeIndex: 97 entries, 2 to 98
+Data columns (total 6 columns):
+ #   Column         Non-Null Count  Dtype         
+---  ------         --------------  -----         
+ 0   CustomerID     97 non-null     float64       
+ 1   BirthDate      97 non-null     datetime64[us]
+ 2   SSN            97 non-null     str           
+ 3   AccountID      96 non-null     float64       
+ 4   AccountOpened  97 non-null     datetime64[us]
+ 5   AccountType    97 non-null     str           
+dtypes: datetime64[us](2), float64(2), str(2)
+memory usage: 6.3 KB
+
+## CELL 39 MARKDOWN
+3. Check whether there are any null values in the DataFrame.  If so, remove those rows or (if you prefer) fill in the value with an appropriate number.
+
+First try at a Google search or ChatGPT prompt: "how do I find out if there are any null values in a pandas DataFrame?"
+
+This page gives an answer.  Unfortunately, it took my request too literally: it tells me only if there are any, and not which rows have them.  On reflection, that's not really what I want - I think I asked the wrong question.  I want to see the rows, not just _whether_ there are any.
+
+https://stackoverflow.com/questions/29530232/how-to-check-if-any-value-is-nan-in-a-pandas-dataframe
+
+ChatGPT likewise doesn't give the answer I want - because I asked the wrong question.
+
+Next try at a Google search or ChatGPT prompt: "how do I check which rows have null values in a pandas DataFrame?"
+
+This page gives an answer:
+
+https://stackoverflow.com/questions/36226083/how-to-find-which-columns-contain-any-nan-value-in-pandas-dataframe
+
+ChatGPT also gives a good answer.  I recommend looking at both of them!
+
+Now try it on your own:
+
+Suggested Google search or ChatGPT prompt: "how do I remove rows with null values in a pandas DataFrame?"
+
+Suggested Google search or ChatGPT prompt: "how do I fill in null values in a pandas DataFrame?"
+
+## CELL 40 CODE execution_count=24
+df_bank_datefix.isnull() # checking to see if there are any null values 
+
+df_bank_datefix.isnull().sum() # there is one null value in the account id coulumn 
+
+x = df_bank_datefix.dropna() # drops all the missing values 
+
+x.isnull().sum() # this worked!
+
+### OUTPUT
+[text/plain]
+CustomerID       0
+BirthDate        0
+SSN              0
+AccountID        0
+AccountOpened    0
+AccountType      0
+dtype: int64
+
+## CELL 41 MARKDOWN
+4. Find out if there are any duplicate rows (two rows exactly the same).  List their row numbers.  Then remove the duplicates
+
+## CELL 42 MARKDOWN
+Suggested Google search or ChatGPT prompt: "how can I find out if there are any duplicate rows in a DataFrame using Python"
+
+Again, Google provides me with a page that addresses the question:
+
+https://saturncloud.io/blog/how-to-find-all-duplicate-rows-in-a-pandas-dataframe/
+
+To remove the duplicates, do this search: "how can I remove the duplicate rows in a DataFrame using Python"
+
+This leads me to the following documentation.
+
+https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.drop_duplicates.html
+
+## CELL 43 CODE execution_count=25
+df_bank_datefix.duplicated().any() # this checks to see if there are any duplicated rows in the dataframe 
+
+# above returns false therefore there are none
+
+### OUTPUT
+[text/plain]
+np.False_
+
+## CELL 44 MARKDOWN
+5. Check whether the customers all have unique AccountIDs.  If not, provide the first example of a non-unique AccountId.
+
+## CELL 45 MARKDOWN
+Suggested Google search or ChatGPT prompt: "how can I find the first non-unique item from a pandas Series in python"
+
+By the way: why didn't I ask the question "how can I check whether the customers all have unique AccountIDs"?
+
+The problem would be that Google and ChatGPT don't know what "customers" you are talking about.  It's important to understand that the AccountIDs are a column of a DataFrame, and as such they are a Series.  Therefore, we should use the correct vocabulary and ask about a Series.  If you mess up and ask about a "list" instead of a Series, you _might_ get an answer that still works.  But it's better to get the vocabularly right.
+
+It's important to add "in python" because this task could be performed in many languages.
+
+ChatGPT gave me this suggestion: data[data.isin(data[data.duplicated()])].iloc[0]
+However, ChatGPT did not explain how this code worked and even claimed (falsely) that it was going to use the value_counts() function in the solution.  So although the code is correct, I personally found ChatGPT's answer very confusing.  You could, perhaps, ask ChatGPT to explain further how this code works.
+
+ChatGPT, "How does this code work: data[data.isin(data[data.duplicated()])].iloc[0]"
+
+On the other hand, Google leads me to the documentation for the duplicated() function:
+
+https://pandas.pydata.org/docs/reference/api/pandas.Series.duplicated.html
+
+Here, I can see that when I really need is data.duplicated(keep = False), where "data" should be the Series in question.  However, this just gives me a Series of boolean values indicating which ones are duplicates.  I have to somehow know that extracting the numerical values instead of a Series of booleans involves boolean indexing: data\[data.duplicated(keep = False)].
+
+So as usual, I'd suggest that a combination of Google, documentation, and ChatGPT will give you the best information.
+
+## CELL 46 CODE execution_count=26
+df_bank_datefix['CustomerID'].is_unique # this returns true, therefore all ids in the selected column are unique
+
+### OUTPUT
+[text/plain]
+True
+
+## CELL 47 MARKDOWN
+6. Count how many distinct AccountIDs there are.
+
+## CELL 48 MARKDOWN
+Suggested Google search or ChatGPT prompt: "how can I find out how many distinct items there are in a pandas Series using python"
+
+This time Google provides me with a page that's specifically made to answer this question:
+
+https://www.geeksforgeeks.org/how-to-count-distinct-values-of-a-pandas-dataframe-column/
+
+## CELL 49 CODE execution_count=27
+df_bank_datefix.nunique() # this will create a taable with the number of unique items in the dataset
+
+### OUTPUT
+[text/plain]
+CustomerID       97
+BirthDate        97
+SSN              97
+AccountID        63
+AccountOpened    97
+AccountType       3
+dtype: int64
+
+## CELL 50 MARKDOWN
+7. Remove the duplicate AccountIDs so that each AccountID appears only once.
+
+This will involve using data.duplicated() but this time without keep = False.  We don't want to drop all duplicates; we want to leave one example of each value.
+
+## CELL 51 CODE execution_count=28
+x = df_bank_datefix.drop_duplicates(subset = 'AccountID', keep = 'first')
+
+df_bank_datefix['AccountID'].nunique()
+
+x
+
+### OUTPUT
+[text/plain]
+    CustomerID  BirthDate          SSN  AccountID AccountOpened AccountType
+2          2.0 1976-12-15  377-98-9839        NaN    2019-03-25    checking
+3          3.0 2003-10-18  474-05-7613       86.0    2004-03-02          cd
+4          4.0 1985-12-06  750-55-5509       77.0    2059-05-05          cd
+5          5.0 2008-02-29  671-43-0485       75.0    2025-05-03    checking
+6          6.0 1975-04-05  288-62-9296       56.0    2048-09-21     savings
+..         ...        ...          ...        ...           ...         ...
+88        88.0 1962-02-07  327-09-3267       97.0    1989-10-03          cd
+90        90.0 1969-06-18  395-31-7064       34.0    2010-12-28    checking
+94        94.0 1969-03-14  958-12-8308        5.0    2037-04-03     savings
+95        95.0 1975-09-23  607-97-1651       36.0    2011-07-24    checking
+96        96.0 1989-03-09  870-80-0364        0.0    2054-11-01          cd
+
+[64 rows x 6 columns]
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } CustomerID BirthDate SSN AccountID AccountOpened AccountType 2 2.0 1976-12-15 377-98-9839 NaN 2019-03-25 checking 3 3.0 2003-10-18 474-05-7613 86.0 2004-03-02 cd 4 4.0 1985-12-06 750-55-5509 77.0 2059-05-05 cd 5 5.0 2008-02-29 671-43-0485 75.0 2025-05-03 checking 6 6.0 1975-04-05 288-62-9296 56.0 2048-09-21 savings ... ... ... ... ... ... ... 88 88.0 1962-02-07 327-09-3267 97.0 1989-10-03 cd 90 90.0 1969-06-18 395-31-7064 34.0 2010-12-28 checking 94 94.0 1969-03-14 958-12-8308 5.0 2037-04-03 savings 95 95.0 1975-09-23 607-97-1651 36.0 2011-07-24 checking 96 96.0 1989-03-09 870-80-0364 0.0 2054-11-01 cd 64 rows × 6 columns 
+
+## CELL 52 MARKDOWN
+8. What are the mean, median, and mode customer age in years?  (Rounding down to the next lower age.)
+Are there any outliers?  (Customers with very large or very small ages, compared with the other ages?)
+
+## CELL 53 MARKDOWN
+Suggested Google search or ChatGPT prompt: "how can I find out the mean, median, and mode of a pandas Series"
+
+## CELL 54 CODE execution_count=29
+df_bank_datefix['Customer Age'] =  2026 - df_bank_datefix['BirthDate'].dt.year
+
+df_bank_datefix['Customer Age'].mean() 
+df_bank_datefix['Customer Age'].median()
+df_bank_datefix['Customer Age'].mode()
+
+### OUTPUT
+[text/plain]
+0    30
+1    36
+Name: Customer Age, dtype: int32
+
+## CELL 55 MARKDOWN
+9. One-hot encode the AccountType column.  This means creating a new "checking," "savings", and "cd" columns so that you can run machine learning algorithms.
+
+## CELL 56 CODE execution_count=30
+one_hot = pd.get_dummies(df_bank_datefix["AccountType"])
+df2 = df_bank_datefix.join(one_hot)
+df2.iloc[0:5]
+
+### OUTPUT
+[text/plain]
+   CustomerID  BirthDate          SSN  AccountID AccountOpened AccountType  \
+2         2.0 1976-12-15  377-98-9839        NaN    2019-03-25    checking   
+3         3.0 2003-10-18  474-05-7613       86.0    2004-03-02          cd   
+4         4.0 1985-12-06  750-55-5509       77.0    2059-05-05          cd   
+5         5.0 2008-02-29  671-43-0485       75.0    2025-05-03    checking   
+6         6.0 1975-04-05  288-62-9296       56.0    2048-09-21     savings   
+
+   Customer Age     cd  checking  savings  
+2            50  False      True    False  
+3            23   True     False    False  
+4            41   True     False    False  
+5            18  False      True    False  
+6            51  False     False     True
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } CustomerID BirthDate SSN AccountID AccountOpened AccountType Customer Age cd checking savings 2 2.0 1976-12-15 377-98-9839 NaN 2019-03-25 checking 50 False True False 3 3.0 2003-10-18 474-05-7613 86.0 2004-03-02 cd 23 True False False 4 4.0 1985-12-06 750-55-5509 77.0 2059-05-05 cd 41 True False False 5 5.0 2008-02-29 671-43-0485 75.0 2025-05-03 checking 18 False True False 6 6.0 1975-04-05 288-62-9296 56.0 2048-09-21 savings 51 False False True 
+
+## CELL 57 MARKDOWN
+Now, change the cd, checking, and savings columns into integers.
+
+## CELL 58 CODE execution_count=31
+df2[['cd','checking','savings']].astype(int).info() # this converts the listed columns to ints and overwrites the DF2 dataset
+
+### OUTPUT
+<class 'pandas.DataFrame'>
+RangeIndex: 97 entries, 2 to 98
+Data columns (total 3 columns):
+ #   Column    Non-Null Count  Dtype
+---  ------    --------------  -----
+ 0   cd        97 non-null     int64
+ 1   checking  97 non-null     int64
+ 2   savings   97 non-null     int64
+dtypes: int64(3)
+memory usage: 2.4 KB
+
+## CELL 59 MARKDOWN
+10. Are there any other data values that do not seem right?  If not, give an example?
+
+## CELL 60 MARKDOWN
+I don't think Google or ChatGPT alone will help you here.  To answer the question, look at the columns and think about what relationships they should have with each other.  For example, it seems reasonable to expect that BirthDate would be no earlier than 120 years ago (it's unlikely that a customer would be this old.)  Now we can ask Google:
+
+"How can I find out how long ago a pandas date is"
+
+Google provides this helpful link, although it is not exactly the solution - you'll have to work with it a bit:
+
+https://stackoverflow.com/questions/26072087/pandas-number-of-days-elapsed-since-a-certain-date
+
+If you check, I think you'll find that all dates are more recent than 120 years ago.  What about the AccountOpened columns?  I see some obviously wrong dates there just by looking at the first few rows.
+
+Along those same lines, are there any birth dates that are too recent?  Do we think that any two year olds will have opened bank accounts?  How common do you think this is in real life?  How common is it in our data set?  Can you detect the two year olds opening bank accounts using just one column, or do you need two columns?
+
+## CELL 61 CODE execution_count=32
+df_bank_datefix['Account Open Year'] = df_bank_datefix['AccountOpened'].dt.year
+df_bank_datefix[df_bank_datefix['Account Open Year'] > 2026] # accounts made after 2026 or in the future 
+
+df_bank_datefix[df_bank_datefix['Customer Age'] > 120] # checking customer age to see if it is over 120 years ago 
+
+df_bank_datefix[df_bank_datefix['Customer Age'] < 12].sort_values('Customer Age') # looking for values of customer age that are under 12
+
+### OUTPUT
+[text/plain]
+    CustomerID  BirthDate          SSN  AccountID AccountOpened AccountType  \
+61        61.0 2023-03-31  040-18-6728       53.0    2068-01-17     savings   
+74        74.0 2023-01-19  086-36-1272        3.0    2093-12-24          cd   
+81        81.0 2023-12-26  299-00-8770       10.0    2029-12-29     savings   
+62        62.0 2022-08-23  719-02-2091       51.0    2090-07-02          cd   
+23        23.0 2021-12-11  939-09-9746       56.0    2071-09-01          cd   
+59        59.0 2019-06-26  119-05-0326       89.0    2065-03-29     savings   
+67        67.0 2019-05-11  392-50-0406       67.0    2036-06-20     savings   
+44        44.0 2018-06-12  275-51-1419       86.0    2095-12-10    checking   
+37        37.0 2017-07-23  991-68-0187       88.0    2094-12-17    checking   
+54        54.0 2017-09-13  403-47-1401       37.0    2066-06-21          cd   
+7          7.0 2016-06-18  593-49-1249       16.0    2087-07-24     savings   
+21        21.0 2016-02-16  972-63-5997       13.0    2077-03-09          cd   
+45        45.0 2015-04-10  931-24-3971       61.0    2078-11-23     savings   
+
+    Customer Age  Account Open Year  
+61             3               2068  
+74             3               2093  
+81             3               2029  
+62             4               2090  
+23             5               2071  
+59             7               2065  
+67             7               2036  
+44             8               2095  
+37             9               2094  
+54             9               2066  
+7             10               2087  
+21            10               2077  
+45            11               2078
+[text/html]
+ .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } CustomerID BirthDate SSN AccountID AccountOpened AccountType Customer Age Account Open Year 61 61.0 2023-03-31 040-18-6728 53.0 2068-01-17 savings 3 2068 74 74.0 2023-01-19 086-36-1272 3.0 2093-12-24 cd 3 2093 81 81.0 2023-12-26 299-00-8770 10.0 2029-12-29 savings 3 2029 62 62.0 2022-08-23 719-02-2091 51.0 2090-07-02 cd 4 2090 23 23.0 2021-12-11 939-09-9746 56.0 2071-09-01 cd 5 2071 59 59.0 2019-06-26 119-05-0326 89.0 2065-03-29 savings 7 2065 67 67.0 2019-05-11 392-50-0406 67.0 2036-06-20 savings 7 2036 44 44.0 2018-06-12 275-51-1419 86.0 2095-12-10 checking 8 2095 37 37.0 2017-07-23 991-68-0187 88.0 2094-12-17 checking 9 2094 54 54.0 2017-09-13 403-47-1401 37.0 2066-06-21 cd 9 2066 7 7.0 2016-06-18 593-49-1249 16.0 2087-07-24 savings 10 2087 21 21.0 2016-02-16 972-63-5997 13.0 2077-03-09 cd 10 2077 45 45.0 2015-04-10 931-24-3971 61.0 2078-11-23 savings 11 2078 
+
+## CELL 62 MARKDOWN
+11. Use Matplotlib and/or Seaborn to analyse the ages at which customers open their account.  Is there a connection between the year they are born vs. the age at which they open the account?  Graph this in whatever way you think is best.
+
+## CELL 63 MARKDOWN
+I asked Google and ChatGPT: "How can I plot dates vs. dates in Matplotlib".  This gave me a hard time at first - I had to tell ChatGPT it was giving me the wrong information because it tried to plot dates vs. numbers.  Eventually, I found out that you plot dates vs. dates in the same way you'd plot numbers vs. numbers.
+
+Think in terms of Storytelling With Data to plot these as best you can.  Once you've seen the result, try to think of the best way to plot the data so as to show the user what you want them to see.  Title the graph so as to display the lesson that you want the user to take away.
+Here are some options for the axes:
+
+1. A scatter or line plot: On the x-axis, the date they are born.  On the y-axis, the date they open the account.
+2. A scatter or line plot: On the x-axis, the date they are born.  On the y-axis, the age in years at which they open the account.
+3. A scatter or line plot: On the x-axis, they year (integer) they are born.  On the y-axis, the age in years at which they open the account.
+4. A histogram: on the x-axis, the age at which they open the account.
+
+Here is an example:
+
+## CELL 64 CODE execution_count=33
+import matplotlib.pyplot as plt
+
+ax = plt.gca() # get an "Axes" object to draw on; gca stands for "get current Axes"
+ax.scatter(df_bank_datefix["Customer Age"], df_bank_datefix["Account Open Year"],
+           alpha= 0.5) # create a scatter plot based on these two dates
+ax.set_ylabel("Account Opened Year") # label the y axis
+ax.set_xlabel("Birth Year") # label the x axis
+ax.set_title('Account Opened Year vs Birth Year')
+
+### OUTPUT
+[text/plain]
+Text(0.5, 1.0, 'Account Opened Year vs Birth Year')
+[text/plain]
+<Figure size 640x480 with 1 Axes>
+[image/png] tmp/notebooks/extracted/Week1/figure-001.png
+
+## CELL 65 MARKDOWN
+# 4. Storytelling With Data graph
+
+## CELL 66 MARKDOWN
+Choose any graph in the Introduction of Storytelling With Data (p. 1-17).  Using matplotlib to reproduce it in a rough way.  I don't expect you to spend an enormous amount of time on this; I understand that you likely will not have time to re-create every feature of the graph.  However, if you're excited about learning to use matplotlib, this is a good way to do that.  You don't have to duplicate the exact values on the graph; just the same rough shape will be enough.  If you don't feel comfortable using matplotlib yet, do the best you can and write down what you tried or what Google searches you did to find the answers.
+
+## CELL 67 CODE execution_count=34
+import matplotlib.pyplot as plt
+import pandas as pd
+
+df2['AccountOpened'] = pd.to_datetime(df2['AccountOpened'])
+
+df2['Account Open Month Num'] = df2['AccountOpened'].dt.month
+df2['Account Open Month'] = df2['AccountOpened'].dt.month_name()
+
+month_account_counts = (
+    df2.groupby(['Account Open Month Num', 'Account Open Month'])[['cd', 'checking', 'savings']]
+       .sum()
+       .reset_index()
+       .sort_values('Account Open Month Num')
+)
+
+month_account_counts = month_account_counts.set_index('Account Open Month')
+
+ax = month_account_counts[['cd', 'checking', 'savings']].plot(
+    kind='bar',
+    figsize=(12, 6), 
+    width = .8
+)
+
+ax.set_title("Account Types by Month Opened")
+ax.set_xlabel("Month Opened")
+ax.set_ylabel("Number of Accounts")
+
+for container in ax.containers:
+    ax.bar_label(container, label_type='edge', fontsize=8)
+
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+### OUTPUT
+[text/plain]
+<Figure size 1200x600 with 1 Axes>
+[image/png] tmp/notebooks/extracted/Week1/figure-002.png
+
+## CELL 68 CODE execution_count=None

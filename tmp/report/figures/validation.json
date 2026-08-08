@@ -1,0 +1,107 @@
+{
+  "mortgage_source": {
+    "rows": 148670,
+    "columns_in_source": 34,
+    "overall_default_rate": 0.24644514696979888,
+    "complete_case_rows": 124437,
+    "complete_case_default_rate": 0.16328744665975553,
+    "missingness_outcome_check": {
+      "property_value": {
+        "False": {
+          "default_rate": 0.16128380199442996,
+          "rows": 133572
+        },
+        "True": {
+          "default_rate": 0.99986753212346,
+          "rows": 15098
+        }
+      },
+      "LTV": {
+        "False": {
+          "default_rate": 0.16128380199442996,
+          "rows": 133572
+        },
+        "True": {
+          "default_rate": 0.99986753212346,
+          "rows": 15098
+        }
+      },
+      "rate_of_interest": {
+        "False": {
+          "default_rate": 0.0017820388306261194,
+          "rows": 112231
+        },
+        "True": {
+          "default_rate": 1.0,
+          "rows": 36439
+        }
+      },
+      "dtir1": {
+        "False": {
+          "default_rate": 0.16322090101084713,
+          "rows": 124549
+        },
+        "True": {
+          "default_rate": 0.6761742879648439,
+          "rows": 24121
+        }
+      },
+      "income": {
+        "False": {
+          "default_rate": 0.2537270642201835,
+          "rows": 139520
+        },
+        "True": {
+          "default_rate": 0.13540983606557377,
+          "rows": 9150
+        }
+      }
+    }
+  },
+  "accepted_lending_club_source": {
+    "source_rows": 2260701,
+    "sample_rows": 61100,
+    "sample_bad_loan_rate": 0.13039279869067102,
+    "grade_counts_available": true
+  },
+  "validated_model_refits": {
+    "mortgage": {
+      "dataset": "Mortgage Loan Default",
+      "rows": 124437,
+      "adverse_rate": 0.16328744665975553,
+      "test_roc_auc": 0.7228129717073878,
+      "accuracy": 0.7599164255866281,
+      "precision": 0.34533212482196035,
+      "recall": 0.525,
+      "confusion_matrix": [
+        [
+          20974,
+          5056
+        ],
+        [
+          2413,
+          2667
+        ]
+      ]
+    },
+    "lending_club": {
+      "dataset": "Accepted Lending Club",
+      "rows": 61100,
+      "adverse_rate": 0.13039279869067102,
+      "test_roc_auc": 0.6976571875093538,
+      "accuracy": 0.6481833060556464,
+      "precision": 0.21541568495456076,
+      "recall": 0.642570281124498,
+      "confusion_matrix": [
+        [
+          8621,
+          4662
+        ],
+        [
+          712,
+          1280
+        ]
+      ]
+    }
+  }
+}

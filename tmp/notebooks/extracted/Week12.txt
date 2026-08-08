@@ -1,0 +1,64 @@
+# Week12.ipynb
+Cells: 10
+
+
+## CELL 1 MARKDOWN
+# Week 12 - Milestone Two week
+
+## CELL 2 MARKDOWN
+# 1. Lesson: no lesson this week.  Milestone Two is due!
+
+## CELL 3 MARKDOWN
+# 2. Weekly graph question
+
+## CELL 4 MARKDOWN
+Suppose you plot the number visitors to a museum over the seven days of a week; then again the following week.  Can you suggest the advantages and disadvantages of the following two ways of presenting the data?
+
+## CELL 5 CODE execution_count=1
+import numpy as np
+import seaborn as sns
+import pandas as pd
+import matplotlib.pyplot as plt
+
+## CELL 6 CODE execution_count=17
+np.random.seed(0)
+time_series_0 = np.array([100, 110, 130, 120, 100, 90, 80])
+time_series_1 = np.array([70, 90, 100, 100, 120, 110, 90])
+fig, axs = plt.subplots(1, 2)
+axs[0].plot(time_series_0)
+axs[1].plot(time_series_1)
+plt.subplots_adjust(wspace = 0)
+plt.xlabel("Day of the week")
+plt.ylabel("Number of visitors")
+
+### OUTPUT
+[text/plain]
+Text(0, 0.5, 'Number of visitors')
+[text/plain]
+<Figure size 640x480 with 2 Axes>
+[image/png] tmp/notebooks/extracted/Week12/figure-001.png
+
+## CELL 7 CODE execution_count=18
+plt.plot(time_series_0)
+plt.plot(time_series_1)
+plt.xlabel("Day of the week")
+plt.ylabel("Number of visitors")
+
+### OUTPUT
+[text/plain]
+Text(0, 0.5, 'Number of visitors')
+[text/plain]
+<Figure size 640x480 with 1 Axes>
+[image/png] tmp/notebooks/extracted/Week12/figure-002.png
+
+## CELL 8 MARKDOWN
+# 3. Working on your datasets
+
+This week, you can work on Milestone Two rather than having a particular exercise about working on your datasets
+
+## CELL 9 MARKDOWN
+# 4. Storytelling With Data plot
+
+Reproduce any graph of your choice in p. 187-205 of the Storytelling With Data book as best you can. (Chapter Eight). You do not have to get the exact data values right, just the overall look and feel.
+
+## CELL 10 CODE execution_count=None

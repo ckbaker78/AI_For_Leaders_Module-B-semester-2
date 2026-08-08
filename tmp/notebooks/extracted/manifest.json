@@ -1,0 +1,132 @@
+[
+  {
+    "file": "Week1.ipynb",
+    "cells": 68,
+    "markdown_cells": 33,
+    "code_cells": 35,
+    "code_cells_with_outputs": 20,
+    "embedded_images": 2,
+    "errors": 0,
+    "text_export": "tmp/notebooks/extracted/Week1.txt"
+  },
+  {
+    "file": "Week2.ipynb",
+    "cells": 30,
+    "markdown_cells": 15,
+    "code_cells": 15,
+    "code_cells_with_outputs": 11,
+    "embedded_images": 2,
+    "errors": 0,
+    "text_export": "tmp/notebooks/extracted/Week2.txt"
+  },
+  {
+    "file": "Week3.ipynb",
+    "cells": 62,
+    "markdown_cells": 27,
+    "code_cells": 35,
+    "code_cells_with_outputs": 23,
+    "embedded_images": 17,
+    "errors": 0,
+    "text_export": "tmp/notebooks/extracted/Week3.txt"
+  },
+  {
+    "file": "Week4CalvinBakerSubmission.ipynb",
+    "cells": 33,
+    "markdown_cells": 17,
+    "code_cells": 16,
+    "code_cells_with_outputs": 11,
+    "embedded_images": 8,
+    "errors": 0,
+    "text_export": "tmp/notebooks/extracted/Week4CalvinBakerSubmission.txt"
+  },
+  {
+    "file": "Week5-concealed-answer.ipynb",
+    "cells": 47,
+    "markdown_cells": 30,
+    "code_cells": 17,
+    "code_cells_with_outputs": 14,
+    "embedded_images": 12,
+    "errors": 0,
+    "text_export": "tmp/notebooks/extracted/Week5-concealed-answer.txt"
+  },
+  {
+    "file": "Week6.ipynb",
+    "cells": 36,
+    "markdown_cells": 16,
+    "code_cells": 20,
+    "code_cells_with_outputs": 19,
+    "embedded_images": 20,
+    "errors": 0,
+    "text_export": "tmp/notebooks/extracted/Week6.txt"
+  },
+  {
+    "file": "Week7.ipynb",
+    "cells": 10,
+    "markdown_cells": 6,
+    "code_cells": 4,
+    "code_cells_with_outputs": 3,
+    "embedded_images": 3,
+    "errors": 0,
+    "text_export": "tmp/notebooks/extracted/Week7.txt"
+  },
+  {
+    "file": "Week8.ipynb",
+    "cells": 56,
+    "markdown_cells": 31,
+    "code_cells": 25,
+    "code_cells_with_outputs": 21,
+    "embedded_images": 9,
+    "errors": 0,
+    "text_export": "tmp/notebooks/extracted/Week8.txt"
+  },
+  {
+    "file": "Week9CalvinBakerSubmission.ipynb",
+    "cells": 47,
+    "markdown_cells": 31,
+    "code_cells": 16,
+    "code_cells_with_outputs": 16,
+    "embedded_images": 13,
+    "errors": 0,
+    "text_export": "tmp/notebooks/extracted/Week9CalvinBakerSubmission.txt"
+  },
+  {
+    "file": "Week10.ipynb",
+    "cells": 45,
+    "markdown_cells": 28,
+    "code_cells": 17,
+    "code_cells_with_outputs": 14,
+    "embedded_images": 5,
+    "errors": 0,
+    "text_export": "tmp/notebooks/extracted/Week10.txt"
+  },
+  {
+    "file": "Week11.ipynb",
+    "cells": 28,
+    "markdown_cells": 17,
+    "code_cells": 11,
+    "code_cells_with_outputs": 8,
+    "embedded_images": 6,
+    "errors": 0,
+    "text_export": "tmp/notebooks/extracted/Week11.txt"
+  },
+  {
+    "file": "Week12.ipynb",
+    "cells": 10,
+    "markdown_cells": 6,
+    "code_cells": 4,
+    "code_cells_with_outputs": 2,
+    "embedded_images": 2,
+    "errors": 0,
+    "text_export": "tmp/notebooks/extracted/Week12.txt"
+  },
+  {
+    "file": "Week12CalvinBakerSubmission.ipynb",
+    "cells": 11,
+    "markdown_cells": 7,
+    "code_cells": 4,
+    "code_cells_with_outputs": 3,
+    "embedded_images": 3,
+    "errors": 0,
+    "text_export": "tmp/notebooks/extracted/Week12CalvinBakerSubmission.txt"
+  }
+]
